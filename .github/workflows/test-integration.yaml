@@ -82,8 +82,7 @@ jobs:
           uv run py-psscriptanalyzer --help
 
           echo "=== Test 2: Test analyzing good PowerShell file ==="
-          # Test analyzing a good file should pass
-          echo 'Write-Host "Hello, World!"' > test-good.ps1
+          # Test analyzing a good file should pass (use the existing test-good.ps1 from repo)
           if uv run py-psscriptanalyzer test-good.ps1; then
             echo "✅ PASS: CLI correctly analyzed clean PowerShell file."
           else
@@ -93,10 +92,13 @@ jobs:
 
           echo "=== Test 3: Test analyzing bad PowerShell file ==="
           # Test analyzing a file with issues should fail
-          echo 'function test { write-host "bad function" }' > test-bad.ps1
-          if uv run py-psscriptanalyzer test-bad.ps1; then
+          echo 'function test { Write-Host "bad function" }' > test-bad-temp.ps1
+          if uv run py-psscriptanalyzer test-bad-temp.ps1; then
             echo "❌ FAIL: CLI should have failed on PowerShell file with issues!"
             exit 1
+          else
+            echo "✅ PASS: CLI correctly found issues in PowerShell file."
+          fi
           else
             echo "✅ PASS: CLI correctly found issues in PowerShell file."
           fi
