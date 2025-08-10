@@ -11,7 +11,7 @@ jobs:
           sparse-checkout: |
             .github/workflows/auto-label.json5
           sparse-checkout-cone-mode: false
-      - uses: Renato66/a5ea1a5b614caf38832da18f5d8e89fd00244227
+      - uses: Renato66/@a5ea1a5b614caf38832da18f5d8e89fd00244227
         with:
           configuration-file: './auto-label.json5'
           repo-token: ${{ secrets.GITHUB_TOKEN }}
