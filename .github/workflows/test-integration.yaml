@@ -93,15 +93,24 @@ jobs:
           echo "=== Test 3: Test analyzing bad PowerShell file ==="
           # Test analyzing a file with issues should fail
           echo 'function test { Write-Host "bad function" }' > test-bad-temp.ps1
-          if uv run py-psscriptanalyzer test-bad-temp.ps1; then
+
+          # Run the analyzer and capture the exit code
+          set +e  # Disable exit on error temporarily
+          uv run py-psscriptanalyzer test-bad-temp.ps1
+          exit_code=$?
+          set -e  # Re-enable exit on error
+
+          # Check if it failed as expected (exit code should be non-zero for bad PowerShell)
+          if [ $exit_code -eq 0 ]; then
             echo "❌ FAIL: CLI should have failed on PowerShell file with issues!"
+            echo "Expected non-zero exit code but got: $exit_code"
             exit 1
           else
-            echo "✅ PASS: CLI correctly found issues in PowerShell file."
+            echo "✅ PASS: CLI correctly found issues in PowerShell file (exit code: $exit_code)."
           fi
-          else
-            echo "✅ PASS: CLI correctly found issues in PowerShell file."
-          fi
+
+          # Clean up temporary file
+          rm -f test-bad-temp.ps1
 
       - name: Test hook with pre-commit
         shell: bash
