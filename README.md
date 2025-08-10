@@ -1,9 +1,9 @@
-# py-psscriptanalyzer
-
 [![PyPI version](https://badge.fury.io/py/py-psscriptanalyzer.svg)](https://badge.fury.io/py/py-psscriptanalyzer)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![Code style: ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 [![Python Compatibility](https://img.shields.io/pypi/pyversions/py-psscriptanalyzer)](https://pypi.org/project/py-psscriptanalyzer/)
+
+# py-psscriptanalyzer
 
 ---
 
@@ -77,7 +77,7 @@ Add this to your `.pre-commit-config.yaml`:
 ```yaml
 repos:
   - repo: https://github.com/thetestlabs/py-psscriptanalyzer
-    rev: v1.0.0
+    rev: v0.1.0
     hooks:
       - id: py-psscriptanalyzer # Lint your PowerShell
       - id: py-psscriptanalyzer-format # Format your PowerShell

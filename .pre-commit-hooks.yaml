@@ -1,0 +1,20 @@
+---
+- id: py-psscriptanalyzer
+  name: py-psscriptanalyzer
+  description: Lint PowerShell files with PSScriptAnalyzer via Python wrapper
+  entry: py-psscriptanalyzer
+  language: python
+  files: \.(ps1|psm1|psd1)$
+  minimum_pre_commit_version: "2.9.0"
+  additional_dependencies: []
+  args: []
+
+- id: py-psscriptanalyzer-format
+  name: py-psscriptanalyzer Format
+  description: Format PowerShell files with PSScriptAnalyzer via Python wrapper
+  entry: py-psscriptanalyzer
+  language: python
+  files: \.(ps1|psm1|psd1)$
+  minimum_pre_commit_version: "2.9.0"
+  additional_dependencies: []
+  args: ["--format"]

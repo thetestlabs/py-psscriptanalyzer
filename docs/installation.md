@@ -127,7 +127,7 @@ repos:
   # ... your existing hooks ...
 
   - repo: https://github.com/thetestlabs/py-psscriptanalyzer
-    rev: v1.0.0  # Use the latest version
+    rev: v0.1.0  # Use the latest version
     hooks:
       # Lint PowerShell files
       - id: py-psscriptanalyzer
@@ -144,7 +144,7 @@ Create a new `.pre-commit-config.yaml` file in your repository root:
 ```yaml
 repos:
   - repo: https://github.com/thetestlabs/py-psscriptanalyzer
-    rev: v1.0.0  # Use the latest version
+    rev: v0.1.0  # Use the latest version
     hooks:
       - id: py-psscriptanalyzer
       - id: py-psscriptanalyzer-format

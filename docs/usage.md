@@ -110,10 +110,10 @@ pre-commit run py-psscriptanalyzer-format --all-files
 You can customize the hooks in your `.pre-commit-config.yaml`:
 
 ```yaml
-repos:
-  - repo: https://github.com/thetestlabs/py-psscriptanalyzer
-    rev: v1.0.0
-    hooks:
+  repos:
+    - repo: https://github.com/thetestlabs/py-psscriptanalyzer
+      rev: v0.1.0
+      hooks:
       # Analyzer with custom severity
       - id: py-psscriptanalyzer
         args: ["--severity", "Warning"]

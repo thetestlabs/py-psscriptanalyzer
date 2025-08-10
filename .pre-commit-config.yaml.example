@@ -1,0 +1,10 @@
+repos:
+  - repo: https://github.com/thetestlabs/py-psscriptanalyzer
+    rev: v0.1.0  # Use the ref you want to point at
+    hooks:
+      # Check for issues
+      - id: py-psscriptanalyzer
+        args: ['--severity', 'All']
+
+      # Format files
+      - id: py-psscriptanalyzer-format
