@@ -1,0 +1,59 @@
+name: 🚀 Feature Request
+description: Suggest an idea for this project 💡 - you don't need to know how to add it
+title: "Feature: "
+labels: [👀 triage, 💡 feature]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this feature request! You don't need to be able to implement it to suggest something.
+  - type: dropdown
+    attributes:
+      multiple: false
+      label: Type of feature
+      description: Select the type of feature request this issue relates to.
+      options:
+        - "🍕 Add or Suggest a new Feature"
+        - "🐛 Fix something that's broken"
+        - "📝 Documentation"
+        - "🎨 Style"
+        - "🧑‍💻 Refactor"
+        - "🔥 Performance"
+        - "✅ Test"
+        - "🔁 Build / CI"
+        - "📦 Chore"
+        - "⏩ Revert"
+        - "[ ] 🤷‍♀️ Don't know/ Not sure / None of the above"
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Current behavior
+      description: Is your feature request related to a problem? Please describe or link to an Issue if you have created one.
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Suggested solution
+      description: Describe the solution you'd like.
+  - type: input
+    id: context
+    attributes:
+      label: Additional context
+      description: Add any other context about the problem or helpful links here.
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Code of Conduct
+      description: By submitting this issue, you agree to follow our [Code of Conduct](https://github.com/open-sauced/.github/blob/main/CODE_OF_CONDUCT.md/)
+      options:
+        - label: I agree to follow this project's Code of Conduct
+          required: true
+  - type: checkboxes
+    id: contribution
+    attributes:
+      label: Contributing Docs
+      description: If you plan on contributing code please read - [Contribution Guide](https://docs.opensauced.pizza/contributing/introduction-to-contributing/)
+      options:
+        - label: I agree to follow this project's Contribution Docs
+          required: false
