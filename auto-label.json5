@@ -6,6 +6,9 @@
     question: ['help', 'how can i', 'help wanted']
   },
   labelsNotAllowed: [
+    'priority',
+    'testing',
+    'won't fix`,
     'documentation',
     'duplicate',
     'good first issue',
