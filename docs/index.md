@@ -1,9 +1,6 @@
 # py-psscriptanalyzer
 
-A Pyt  repos:
-    - repo: https://github.com/thetestlabs/py-psscriptanalyzer
-       rev: v0.1.0
-       hooks:wrapper for PSScriptAnalyzer that provides PowerShell static analysis and formatting capabilities.
+A Python wrapper for PSScriptAnalyzer that provides PowerShell static analysis and formatting capabilities.
 
 ```{toctree}
 :maxdepth: 2

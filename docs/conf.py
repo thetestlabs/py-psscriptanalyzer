@@ -15,6 +15,9 @@ release = "0.1.0"
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
+# Root document (use index.md with MyST parser)
+root_doc = "index"
+
 extensions = [
     "sphinx.ext.autodoc",
     "sphinx.ext.viewcode",
