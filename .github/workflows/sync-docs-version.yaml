@@ -1,0 +1,96 @@
+name: Update Documentation Version
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "pyproject.toml"
+
+jobs:
+  update-docs-version:
+    name: Update docs version to match pyproject.toml
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@e92bafb6253dcd438e0484186d7669ea7a8ca1cc
+        with:
+          version: "latest"
+
+      - name: Set up Python
+        run: uv python install 3.13
+
+      - name: Check if docs version needs updating
+        id: version-check
+        run: |
+          import tomllib
+          import re
+          import sys
+          import os
+
+          # Read version from pyproject.toml
+          with open('pyproject.toml', 'rb') as f:
+              data = tomllib.load(f)
+              pyproject_version = data['project']['version']
+
+          # Read version from docs/conf.py
+          with open('docs/conf.py', 'r') as f:
+              content = f.read()
+              match = re.search(r'^release = "([^"]*)"', content, re.MULTILINE)
+              if match:
+                  docs_version = match.group(1)
+              else:
+                  print("Could not find version in docs/conf.py")
+                  sys.exit(1)
+
+          print(f"PyProject version: {pyproject_version}")
+          print(f"Docs version: {docs_version}")
+
+          if pyproject_version != docs_version:
+              print("Versions differ, updating docs")
+
+              # Extract short version (e.g., "1.0" from "1.0.0")
+              version_parts = pyproject_version.split('.')
+              short_version = '.'.join(version_parts[:2]) if len(version_parts) >= 2 else pyproject_version
+
+              # Update docs/conf.py
+              updated_content = re.sub(
+                  r'^version = "[^"]*"',
+                  f'version = "{short_version}"',
+                  content,
+                  flags=re.MULTILINE
+              )
+              updated_content = re.sub(
+                  r'^release = "[^"]*"',
+                  f'release = "{pyproject_version}"',
+                  updated_content,
+                  flags=re.MULTILINE
+              )
+
+              with open('docs/conf.py', 'w') as f:
+                  f.write(updated_content)
+
+              # Set output for next step
+              with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
+                  f.write(f"updated=true\n")
+                  f.write(f"version={pyproject_version}\n")
+          else:
+              print("Versions match, no update needed")
+              with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
+                  f.write(f"updated=false\n")
+        shell: python
+
+      - name: Commit updated documentation version
+        if: steps.version-check.outputs.updated == 'true'
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add docs/conf.py
+          git commit -m "docs: update version to ${{ steps.version-check.outputs.version }}"
+          git push

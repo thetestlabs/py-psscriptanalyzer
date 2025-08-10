@@ -1,0 +1,150 @@
+name: Integration Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python-version: ["3.9", "3.12", "3.13"]
+        exclude:
+          # Reduce matrix size - test fewer combinations
+          - os: macos-latest
+            python-version: "3.9"
+          - os: ubuntu-latest
+            python-version: "3.9"
+
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@e92bafb6253dcd438e0484186d7669ea7a8ca1cc
+        with:
+          version: "latest"
+          enable-cache: true
+
+      - name: Install dependencies
+        run: |
+          uv sync --group dev
+
+      - name: Install PowerShell (Ubuntu/macOS)
+        if: matrix.os != 'windows-latest'
+        shell: bash
+        run: |
+          if [[ "${{ matrix.os }}" == "ubuntu-latest" ]]; then
+            # Use snap for faster installation
+            sudo snap install powershell --classic
+          elif [[ "${{ matrix.os }}" == "macos-latest" ]]; then
+            brew install --cask powershell
+          fi
+
+      - name: Verify PowerShell installation
+        shell: bash
+        run: |
+          if command -v pwsh >/dev/null 2>&1; then
+            echo "PowerShell Core (pwsh) found"
+            pwsh -Command '$PSVersionTable.PSVersion'
+          elif command -v powershell >/dev/null 2>&1; then
+            echo "Windows PowerShell found"
+            powershell -Command '$PSVersionTable.PSVersion'
+          else
+            echo "No PowerShell found"
+            exit 1
+          fi
+
+      - name: Build package
+        run: uv build
+
+      - name: Check package
+        run: uv run twine check dist/*
+
+      - name: Install package locally
+        run: uv pip install --editable .
+
+      - name: Test CLI functionality
+        shell: bash
+        run: |
+          echo "=== Test 1: Test basic CLI functionality ==="
+          # Test the basic CLI works
+          uv run py-psscriptanalyzer --help
+
+          echo "=== Test 2: Test analyzing good PowerShell file ==="
+          # Test analyzing a good file should pass (use the existing test-good.ps1 from repo)
+          if uv run py-psscriptanalyzer test-good.ps1; then
+            echo "✅ PASS: CLI correctly analyzed clean PowerShell file."
+          else
+            echo "❌ FAIL: CLI should have passed on clean PowerShell file!"
+            exit 1
+          fi
+
+          echo "=== Test 3: Test analyzing bad PowerShell file ==="
+          # Test analyzing a file with issues should fail
+          echo 'function test { Write-Host "bad function" }' > test-bad-temp.ps1
+
+          # Run the analyzer and capture the exit code
+          set +e  # Disable exit on error temporarily
+          uv run py-psscriptanalyzer test-bad-temp.ps1
+          exit_code=$?
+          set -e  # Re-enable exit on error
+
+          # Check if it failed as expected (exit code should be non-zero for bad PowerShell)
+          if [ $exit_code -eq 0 ]; then
+            echo "❌ FAIL: CLI should have failed on PowerShell file with issues!"
+            echo "Expected non-zero exit code but got: $exit_code"
+            exit 1
+          else
+            echo "✅ PASS: CLI correctly found issues in PowerShell file (exit code: $exit_code)."
+          fi
+
+          # Clean up temporary file
+          rm -f test-bad-temp.ps1
+
+      - name: Test hook with pre-commit
+        shell: bash
+        run: |
+          cat > .pre-commit-config.yaml << 'EOF'
+          repos:
+            - repo: local
+              hooks:
+                - id: py-psscriptanalyzer-local
+                  name: Python PSScriptAnalyzer (local)
+                  entry: py-psscriptanalyzer
+                  language: system
+                  files: \.(ps1|psm1|psd1)$
+          EOF
+          uv run pre-commit install
+
+          echo "=== Test 4: Verify hook finds issues in bad PowerShell files ==="
+          # Test that the hook correctly finds issues in bad PowerShell files
+          if uv run pre-commit run --all-files; then
+            echo "❌ FAIL: Pre-commit hook should have failed on intentionally bad PowerShell files!"
+            echo "This indicates the hook is not working correctly."
+            exit 1
+          else
+            echo "✅ PASS: Pre-commit hook correctly found issues in PowerShell files."
+          fi
+
+          echo "=== Test 5: Verify hook passes on clean PowerShell files ==="
+          # Test that the hook passes on clean files
+          if uv run pre-commit run --files test-good.ps1; then
+            echo "✅ PASS: Pre-commit hook correctly passed on clean PowerShell file."
+          else
+            echo "❌ FAIL: Pre-commit hook should have passed on clean PowerShell file!"
+            echo "This indicates the hook may have false positives."
+            exit 1
+          fi
+
+          echo "🎉 All integration tests passed! py-psscriptanalyzer is working correctly."

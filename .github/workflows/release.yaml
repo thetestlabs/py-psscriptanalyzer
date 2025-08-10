@@ -1,0 +1,174 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Run tests before release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@e92bafb6253dcd438e0484186d7669ea7a8ca1cc
+        with:
+          version: "latest"
+
+      - name: Set up Python
+        run: uv python install 3.13
+
+      - name: Install test dependencies
+        run: uv sync --group dev
+
+      - name: Run tests
+        run: uv run pytest
+
+      - name: Run quality checks
+        run: |
+          uv run ruff check .
+          uv run ruff format --check .
+          uv run mypy src/py_psscriptanalyzer/
+
+  build-docs:
+    name: Build documentation
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@e92bafb6253dcd438e0484186d7669ea7a8ca1cc
+        with:
+          version: "latest"
+
+      - name: Set up Python
+        run: uv python install 3.13
+
+      - name: Install documentation dependencies
+        run: uv sync --group docs
+
+      - name: Update docs version from pyproject.toml
+        run: |
+          import tomllib
+          import re
+
+          # Read version from pyproject.toml
+          with open('pyproject.toml', 'rb') as f:
+              data = tomllib.load(f)
+              version = data['project']['version']
+
+          # Extract short version (e.g., "1.0" from "1.0.0")
+          version_parts = version.split('.')
+          short_version = '.'.join(version_parts[:2]) if len(version_parts) >= 2 else version
+
+          # Update docs/conf.py
+          with open('docs/conf.py', 'r') as f:
+              content = f.read()
+
+          # Replace both version and release lines
+          updated_content = re.sub(
+              r'^version = "[^"]*"',
+              f'version = "{short_version}"',
+              content,
+              flags=re.MULTILINE
+          )
+          updated_content = re.sub(
+              r'^release = "[^"]*"',
+              f'release = "{version}"',
+              updated_content,
+              flags=re.MULTILINE
+          )
+
+          with open('docs/conf.py', 'w') as f:
+              f.write(updated_content)
+
+          print(f"Updated docs version to {version}")
+        shell: python
+
+      - name: Build documentation
+        run: |
+          mkdir -p docs/_static
+          uv run sphinx-build -b html docs docs/_build/html --keep-going
+
+      - name: Upload documentation artifacts
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: documentation
+          path: docs/_build/html/
+          retention-days: 30
+
+#   deploy:
+#     name: Deploy to ReadTheDocs
+#     runs-on: ubuntu-latest
+#     needs: build-docs
+
+#     steps:
+#       - name: Trigger ReadTheDocs build
+#         run: |
+#           curl -X POST \
+#             -H "Authorization: Token ${{ secrets.READTHEDOCS_TOKEN }}" \
+#             https://readthedocs.org/api/v3/projects/py-psscriptanalyzer/versions/latest/builds/
+#         continue-on-error: true  # Don't fail the workflow if RTD webhook fails
+
+#   publish-pypi:
+#     name: Build and publish to PyPI
+#     runs-on: ubuntu-latest
+#     needs: [test, build-docs]
+#     environment:
+#       name: pypi
+#       url: https://pypi.org/p/py-psscriptanalyzer
+#     permissions:
+#       id-token: write  # IMPORTANT: this permission is mandatory for trusted publishing
+
+#     steps:
+#       - name: Checkout code
+#         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+
+#       - name: Install uv
+#         uses: astral-sh/setup-uv@e92bafb6253dcd438e0484186d7669ea7a8ca1cc
+#         with:
+#           version: "latest"
+
+#       - name: Set up Python
+#         run: uv python install 3.13
+
+#       - name: Verify version matches tag
+#         run: |
+#           import tomllib
+#           import sys
+#           import os
+
+#           # Get the tag from the GitHub ref
+#           tag = os.environ['GITHUB_REF'].replace('refs/tags/v', '')
+
+#           # Read version from pyproject.toml
+#           with open('pyproject.toml', 'rb') as f:
+#               data = tomllib.load(f)
+#               version = data['project']['version']
+
+#           if tag != version:
+#               print(f"❌ Tag version ({tag}) doesn't match pyproject.toml version ({version})")
+#               sys.exit(1)
+#           else:
+#               print(f"✅ Tag version ({tag}) matches pyproject.toml version ({version})")
+#         shell: python
+
+#       - name: Build package
+#         run: uv build
+
+#       - name: Check package
+#         run: uv run twine check dist/*
+
+#       - name: Publish to PyPI
+#         uses: pypa/gh-action-pypi-publish@76f52bc884231f62b9a034ebfe128415bbaabdfc
+#         with:
+#           verbose: true
+#           print-hash: true
