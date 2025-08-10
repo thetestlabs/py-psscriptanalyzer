@@ -258,16 +258,16 @@ class TestMain:
 
     def test_main_no_powershell(self) -> None:
         """Test main function when PowerShell is not found."""
-        with patch("py_psscriptanalyzer.powershell.find_powershell", return_value=None):
+        with patch("py_psscriptanalyzer.core.find_powershell", return_value=None):
             result = main(["test.ps1"])
             assert result == 1
 
     def test_main_psscriptanalyzer_not_installed_install_fails(self) -> None:
         """Test main when PSScriptAnalyzer not installed and installation fails."""
         with (
-            patch("py_psscriptanalyzer.powershell.find_powershell", return_value="pwsh"),
-            patch("py_psscriptanalyzer.powershell.check_psscriptanalyzer_installed", return_value=False),
-            patch("py_psscriptanalyzer.powershell.install_psscriptanalyzer", return_value=False),
+            patch("py_psscriptanalyzer.core.find_powershell", return_value="pwsh"),
+            patch("py_psscriptanalyzer.core.check_psscriptanalyzer_installed", return_value=False),
+            patch("py_psscriptanalyzer.core.install_psscriptanalyzer", return_value=False),
         ):
             result = main(["test.ps1"])
             assert result == 1
@@ -275,9 +275,9 @@ class TestMain:
     def test_main_success_with_installation(self) -> None:
         """Test successful execution with PSScriptAnalyzer installation."""
         with (
-            patch("py_psscriptanalyzer.powershell.find_powershell", return_value="pwsh"),
-            patch("py_psscriptanalyzer.powershell.check_psscriptanalyzer_installed", return_value=False),
-            patch("py_psscriptanalyzer.powershell.install_psscriptanalyzer", return_value=True),
+            patch("py_psscriptanalyzer.core.find_powershell", return_value="pwsh"),
+            patch("py_psscriptanalyzer.core.check_psscriptanalyzer_installed", return_value=False),
+            patch("py_psscriptanalyzer.core.install_psscriptanalyzer", return_value=True),
             patch("py_psscriptanalyzer.core.run_script_analyzer", return_value=0),
         ):
             result = main(["test.ps1"])
@@ -286,8 +286,8 @@ class TestMain:
     def test_main_success_already_installed(self) -> None:
         """Test successful execution when PSScriptAnalyzer already installed."""
         with (
-            patch("py_psscriptanalyzer.powershell.find_powershell", return_value="pwsh"),
-            patch("py_psscriptanalyzer.powershell.check_psscriptanalyzer_installed", return_value=True),
+            patch("py_psscriptanalyzer.core.find_powershell", return_value="pwsh"),
+            patch("py_psscriptanalyzer.core.check_psscriptanalyzer_installed", return_value=True),
             patch("py_psscriptanalyzer.core.run_script_analyzer", return_value=0),
         ):
             result = main(["test.ps1"])
@@ -296,8 +296,8 @@ class TestMain:
     def test_main_analysis_finds_issues(self) -> None:
         """Test main function when analysis finds issues."""
         with (
-            patch("py_psscriptanalyzer.powershell.find_powershell", return_value="pwsh"),
-            patch("py_psscriptanalyzer.powershell.check_psscriptanalyzer_installed", return_value=True),
+            patch("py_psscriptanalyzer.core.find_powershell", return_value="pwsh"),
+            patch("py_psscriptanalyzer.core.check_psscriptanalyzer_installed", return_value=True),
             patch("py_psscriptanalyzer.core.run_script_analyzer", return_value=1),
         ):
             result = main(["test.ps1"])
@@ -306,8 +306,8 @@ class TestMain:
     def test_main_format_mode(self) -> None:
         """Test main function in format mode."""
         with (
-            patch("py_psscriptanalyzer.powershell.find_powershell", return_value="pwsh"),
-            patch("py_psscriptanalyzer.powershell.check_psscriptanalyzer_installed", return_value=True),
+            patch("py_psscriptanalyzer.core.find_powershell", return_value="pwsh"),
+            patch("py_psscriptanalyzer.core.check_psscriptanalyzer_installed", return_value=True),
             patch("py_psscriptanalyzer.core.run_script_analyzer", return_value=0),
         ):
             result = main(["--format", "test.ps1"])
@@ -317,8 +317,8 @@ class TestMain:
     def test_main_all_severity_levels(self, severity: str) -> None:
         """Test main function with all severity levels."""
         with (
-            patch("py_psscriptanalyzer.powershell.find_powershell", return_value="pwsh"),
-            patch("py_psscriptanalyzer.powershell.check_psscriptanalyzer_installed", return_value=True),
+            patch("py_psscriptanalyzer.core.find_powershell", return_value="pwsh"),
+            patch("py_psscriptanalyzer.core.check_psscriptanalyzer_installed", return_value=True),
             patch("py_psscriptanalyzer.core.run_script_analyzer", return_value=0),
         ):
             result = main(["--severity", severity, "test.ps1"])
@@ -327,8 +327,8 @@ class TestMain:
     def test_main_mixed_file_types(self) -> None:
         """Test main function with mixed file types."""
         with (
-            patch("py_psscriptanalyzer.powershell.find_powershell", return_value="pwsh"),
-            patch("py_psscriptanalyzer.powershell.check_psscriptanalyzer_installed", return_value=True),
+            patch("py_psscriptanalyzer.core.find_powershell", return_value="pwsh"),
+            patch("py_psscriptanalyzer.core.check_psscriptanalyzer_installed", return_value=True),
             patch("py_psscriptanalyzer.core.run_script_analyzer", return_value=0),
         ):
             result = main(["test.ps1", "test.txt", "module.psm1", "data.psd1", "script.py"])
@@ -337,8 +337,8 @@ class TestMain:
     def test_main_format_and_severity(self) -> None:
         """Test main function with both format and severity options."""
         with (
-            patch("py_psscriptanalyzer.powershell.find_powershell", return_value="pwsh"),
-            patch("py_psscriptanalyzer.powershell.check_psscriptanalyzer_installed", return_value=True),
+            patch("py_psscriptanalyzer.core.find_powershell", return_value="pwsh"),
+            patch("py_psscriptanalyzer.core.check_psscriptanalyzer_installed", return_value=True),
             patch("py_psscriptanalyzer.core.run_script_analyzer", return_value=0),
         ):
             result = main(["--format", "--severity", "Error", "test.ps1"])
@@ -347,8 +347,8 @@ class TestMain:
     def test_main_with_powershell_lts(self) -> None:
         """Test main function when using PowerShell LTS."""
         with (
-            patch("py_psscriptanalyzer.powershell.find_powershell", return_value="pwsh-lts"),
-            patch("py_psscriptanalyzer.powershell.check_psscriptanalyzer_installed", return_value=True),
+            patch("py_psscriptanalyzer.core.find_powershell", return_value="pwsh-lts"),
+            patch("py_psscriptanalyzer.core.check_psscriptanalyzer_installed", return_value=True),
             patch("py_psscriptanalyzer.core.run_script_analyzer", return_value=0),
         ):
             result = main(["test.ps1"])
@@ -357,8 +357,8 @@ class TestMain:
     def test_main_with_windows_powershell(self) -> None:
         """Test main function when using Windows PowerShell."""
         with (
-            patch("py_psscriptanalyzer.powershell.find_powershell", return_value="powershell"),
-            patch("py_psscriptanalyzer.powershell.check_psscriptanalyzer_installed", return_value=True),
+            patch("py_psscriptanalyzer.core.find_powershell", return_value="powershell"),
+            patch("py_psscriptanalyzer.core.check_psscriptanalyzer_installed", return_value=True),
             patch("py_psscriptanalyzer.core.run_script_analyzer", return_value=0),
         ):
             result = main(["test.ps1"])

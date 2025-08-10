@@ -15,7 +15,6 @@ __version__ = "0.1.0"
 from .core import main, run_script_analyzer
 from .powershell import check_psscriptanalyzer_installed, find_powershell, install_psscriptanalyzer
 
-__version__ = "0.1.0"
 __all__ = [
     "main",
     "run_script_analyzer",
