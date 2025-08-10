@@ -117,7 +117,7 @@ repos:
       # Analyzer with custom severity
       - id: py-psscriptanalyzer
         args: ["--severity", "Warning"]
-      
+
       # Formatter (no additional args needed)
       - id: py-psscriptanalyzer-format
 ```
@@ -175,19 +175,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-          
+
       - name: Install PowerShell
         run: |
           sudo snap install powershell --classic
-          
+
       - name: Install py-psscriptanalyzer
         run: pip install py-psscriptanalyzer
-        
+
       - name: Analyze PowerShell files
         run: py-psscriptanalyzer **/*.ps1
 ```
@@ -205,15 +205,15 @@ steps:
 - task: UsePythonVersion@0
   inputs:
     versionSpec: '3.11'
-    
+
 - script: |
     sudo snap install powershell --classic
   displayName: 'Install PowerShell'
-  
+
 - script: |
     pip install py-psscriptanalyzer
   displayName: 'Install py-psscriptanalyzer'
-  
+
 - script: |
     py-psscriptanalyzer **/*.ps1
   displayName: 'Analyze PowerShell files'

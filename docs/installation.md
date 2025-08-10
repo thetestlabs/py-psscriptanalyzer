@@ -132,7 +132,7 @@ repos:
       # Lint PowerShell files
       - id: py-psscriptanalyzer
         args: ["--severity", "Warning"]
-      
+
       # Format PowerShell files
       - id: py-psscriptanalyzer-format
 ```

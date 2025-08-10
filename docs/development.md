@@ -207,10 +207,10 @@ def test_full_analysis_workflow(tmp_path):
     # Create test PowerShell file
     ps_file = tmp_path / "test.ps1"
     ps_file.write_text("Write-Host 'Hello World'")
-    
+
     # Run analysis
     result = run_script_analyzer([str(ps_file)])
-    
+
     # Verify results
     assert result != 0  # Should find Write-Host issue
 ```
@@ -306,10 +306,10 @@ def example_function(param1: str, param2: int = 0) -> bool:
 
     Raises:
         ValueError: Description of when this exception is raised.
-        
+
     Example:
         Basic usage example:
-        
+
         >>> result = example_function("hello", 42)
         >>> print(result)
         True

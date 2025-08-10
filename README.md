@@ -21,7 +21,7 @@ A Python wrapper for [PSScriptAnalyzer](https://github.com/PowerShell/PSScriptAn
 ✅ **Zero config** - installs PSScriptAnalyzer automatically  
 ✅ **GitHub Actions ready** - with standard error annotations  
 ✅ **CI/CD friendly** - perfect for automation pipelines  
-✅ **Pre-commit hooks** - catch issues before they hit your repo  
+✅ **Pre-commit hooks** - catch issues before they hit your repo
 
 ## Installation
 
@@ -57,15 +57,15 @@ powershell_cmd = find_powershell()
 
 # Analyze files
 exit_code = run_script_analyzer(
-    powershell_cmd, 
-    ["script.ps1"], 
+    powershell_cmd,
+    ["script.ps1"],
     severity="Warning"
 )
 
 # Format files
 exit_code = run_script_analyzer(
-    powershell_cmd, 
-    ["script.ps1"], 
+    powershell_cmd,
+    ["script.ps1"],
     format_files=True
 )
 ```
@@ -79,8 +79,8 @@ repos:
   - repo: https://github.com/thetestlabs/py-psscriptanalyzer
     rev: v1.0.0
     hooks:
-      - id: py-psscriptanalyzer        # Lint your PowerShell
-      - id: py-psscriptanalyzer-format  # Format your PowerShell
+      - id: py-psscriptanalyzer # Lint your PowerShell
+      - id: py-psscriptanalyzer-format # Format your PowerShell
 ```
 
 ### GitHub Actions

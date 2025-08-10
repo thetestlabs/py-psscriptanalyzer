@@ -46,7 +46,7 @@ repos:
     hooks:
       - id: py-psscriptanalyzer
         files: \\.ps1$  # Only .ps1 files
-      
+
       - id: py-psscriptanalyzer-format
         files: ^src/.*\\.(ps1|psm1)$  # Only files in src/ directory
 ```
@@ -78,13 +78,13 @@ repos:
         name: PowerShell Analysis (Strict)
         files: ^src/.*\\.ps1$
         args: ["--severity", "Warning"]
-      
+
       # Lenient analysis for tests
       - id: py-psscriptanalyzer
         name: PowerShell Analysis (Tests)
         files: ^tests/.*\\.ps1$
         args: ["--severity", "Error"]
-      
+
       # Format all PowerShell files
       - id: py-psscriptanalyzer-format
         name: PowerShell Formatting
@@ -127,33 +127,33 @@ Create a `.psscriptanalyzer-settings.psd1` file in your project root:
 @{
     # Severity levels to include
     Severity = @('Error', 'Warning')
-    
+
     # Rules to exclude
     ExcludeRules = @(
         'PSAvoidUsingWriteHost',  # Allow Write-Host for scripts
         'PSUseShouldProcessForStateChangingFunctions'  # Not applicable for simple scripts
     )
-    
+
     # Rules to include (if you want to be explicit)
     IncludeRules = @(
         'PSAvoidUsingCmdletAliases',
         'PSAvoidUsingPlainTextForPassword',
         'PSUseDeclaredVarsMoreThanAssignments'
     )
-    
+
     # Custom rule settings
     Rules = @{
         PSAvoidUsingCmdletAliases = @{
             'allowlist' = @('cd', 'dir', 'type')  # Allow these specific aliases
         }
-        
+
         PSPlaceOpenBrace = @{
             Enable = $true
             OnSameLine = $true
             NewLineAfter = $true
             IgnoreOneLineBlock = $true
         }
-        
+
         PSUseConsistentIndentation = @{
             Enable = $true
             IndentationSize = 4
@@ -193,21 +193,21 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-          
+
       - name: Install PowerShell
         run: sudo snap install powershell --classic
-        
+
       - name: Install py-psscriptanalyzer
         run: pip install py-psscriptanalyzer
-        
+
       - name: Analyze PowerShell files
         run: py-psscriptanalyzer --severity Warning **/*.ps1
-        
+
       - name: Check formatting
         run: py-psscriptanalyzer --format --dry-run **/*.ps1
 ```
@@ -225,13 +225,13 @@ steps:
 - task: UsePythonVersion@0
   inputs:
     versionSpec: '3.11'
-    
+
 - script: sudo snap install powershell --classic
   displayName: 'Install PowerShell'
-  
+
 - script: pip install py-psscriptanalyzer
   displayName: 'Install py-psscriptanalyzer'
-  
+
 - script: py-psscriptanalyzer --severity Warning **/*.ps1
   displayName: 'Analyze PowerShell files'
 ```
