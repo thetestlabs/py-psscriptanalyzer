@@ -6,7 +6,8 @@ body:
   - type: markdown
     attributes:
       value: |
-        Thanks for taking the time to fill out this feature request! You don't need to be able to implement it to suggest something.
+        Thanks for taking the time to fill out this feature request! You don't need to be able to implement it to
+        suggest something.
   - type: dropdown
     attributes:
       multiple: false
@@ -23,13 +24,15 @@ body:
         - "🔁 Build / CI"
         - "📦 Chore"
         - "⏩ Revert"
-        - "[ ] 🤷‍♀️ Don't know/ Not sure / None of the above"
+        - "🤷‍♀️ Don't know/ Not sure / None of the above"
     validations:
       required: true
   - type: textarea
     attributes:
       label: Current behavior
-      description: Is your feature request related to a problem? Please describe or link to an Issue if you have created one.
+      description:
+        Is your feature request related to a problem? Please describe or link to an Issue if you
+        or somebody else have created one.
     validations:
       required: true
   - type: textarea
@@ -45,7 +48,8 @@ body:
     id: terms
     attributes:
       label: Code of Conduct
-      description: By submitting this issue, you agree to follow our [Code of Conduct](https://github.com/open-sauced/.github/blob/main/CODE_OF_CONDUCT.md/)
+      description: By submitting this issue, you agree to follow our
+        [Code of Conduct](https://github.com/thetestlabs.github/blob/main/CODE_OF_CONDUCT.md/)
       options:
         - label: I agree to follow this project's Code of Conduct
           required: true
@@ -53,7 +57,8 @@ body:
     id: contribution
     attributes:
       label: Contributing Docs
-      description: If you plan on contributing code please read - [Contribution Guide](https://docs.opensauced.pizza/contributing/introduction-to-contributing/)
+      description: If you plan on contributing code please read -
+        [Contribution Guide](https://docs.opensauced.pizza/contributing/introduction-to-contributing/)
       options:
         - label: I agree to follow this project's Contribution Docs
           required: false
