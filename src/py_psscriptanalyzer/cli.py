@@ -1,4 +1,4 @@
-"""Modern CLI interface with Rich formatting."""
+"""Modern CLI interface for PSScriptAnalyzer with Rich formatting."""
 
 import argparse
 import os
@@ -13,6 +13,7 @@ from rich.text import Text
 from .core import run_script_analyzer
 from .powershell import check_psscriptanalyzer_installed, find_powershell, install_psscriptanalyzer
 
+# Create a simple console with minimal configuration for maximum compatibility
 console = Console()
 
 
@@ -99,8 +100,8 @@ class RichHelpFormatter(argparse.HelpFormatter):
             # Print header sections without panel
             console.print(help_text)
 
-            # Add a thick blue separator line
-            console.print("─" * console.width, style="bold blue")
+            # Add a separator line (ASCII-safe for Windows compatibility)
+            console.print("-" * min(console.width, 80), style="bold blue")
             console.print()
 
             console.print("OPTIONS", style="bold green")
@@ -108,7 +109,7 @@ class RichHelpFormatter(argparse.HelpFormatter):
             console.print()
 
             # Add another separator line before examples
-            console.print("─" * console.width, style="bold blue")
+            console.print("-" * min(console.width, 80), style="bold blue")
             console.print()
 
             console.print(examples_text)
@@ -170,7 +171,7 @@ def print_error(message: str) -> None:
 
 def print_success(message: str) -> None:
     """Print a success message with Rich formatting."""
-    console.print(f"[green]✓[/green] {message}")
+    console.print(f"[green]OK[/green] {message}")
 
 
 def find_powershell_files_recursive(start_dir: Optional[Path] = None) -> list[str]:
