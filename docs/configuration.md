@@ -17,7 +17,7 @@ repos:
 
 ### Severity Levels
 
-Control which issues are reported by setting the severity level:
+py-psscriptanalyzer uses a **hierarchical severity system** where each level includes more severe issues:
 
 ```yaml
 repos:
@@ -25,15 +25,92 @@ repos:
     rev: v0.1.0
     hooks:
       - id: py-psscriptanalyzer
-        args: ["--severity", "Error"]  # Only show errors
+        args: ["--severity", "Error"]  # Only show critical errors
 ```
 
-Available severity levels:
+Available severity levels (hierarchical):
 
-- **`Error`**: Only critical issues that prevent code execution
-- **`Warning`**: Style issues and potential problems (default for most rules)
-- **`Information`**: Minor style suggestions
-- **`All`**: All issues (default)
+- **`Information`**: Shows all issues (Information + Warning + Error) - most comprehensive
+- **`Warning`**: Shows Warning and Error issues (default) - recommended for most projects
+- **`Error`**: Shows only Error issues - most strict, only critical problems
+- **`All`**: Same as Information level
+
+### Environment Variables
+
+You can set default severity using environment variables in your CI/CD or local development:
+
+```yaml
+# In GitHub Actions
+env:
+  SEVERITY_LEVEL: Error
+
+# Or in your pre-commit hook
+repos:
+  - repo: https://github.com/thetestlabs/py-psscriptanalyzer
+    rev: v0.1.0
+    hooks:
+      - id: py-psscriptanalyzer
+        # Uses SEVERITY_LEVEL environment variable if set, otherwise defaults to Warning
+```
+
+Command line arguments always override environment variable settings:
+
+```bash
+export SEVERITY_LEVEL=Error
+py-psscriptanalyzer --severity Warning script.ps1  # Uses Warning, not Error
+```
+
+### Recursive File Processing
+
+Use the `--recursive` flag to automatically find and process all PowerShell files:
+
+```yaml
+repos:
+  - repo: https://github.com/thetestlabs/py-psscriptanalyzer
+    rev: v0.1.0
+    hooks:
+      - id: py-psscriptanalyzer
+        args: ["--recursive", "--severity", "Error"]
+        # This will find all .ps1, .psm1, .psd1 files recursively
+```
+
+### CI/CD Integration
+
+#### GitHub Actions Example
+
+```yaml
+name: PowerShell Analysis
+on: [push, pull_request]
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      - name: Install py-psscriptanalyzer
+        run: pip install py-psscriptanalyzer
+      - name: Analyze PowerShell files
+        env:
+          SEVERITY_LEVEL: Error  # Set default severity via environment
+        run: py-psscriptanalyzer --recursive
+```
+
+#### Azure DevOps Example
+
+```yaml
+steps:
+- task: UsePythonVersion@0
+  inputs:
+    versionSpec: '3.11'
+- script: |
+    pip install py-psscriptanalyzer
+    export SEVERITY_LEVEL=Warning
+    py-psscriptanalyzer --recursive
+  displayName: 'Analyze PowerShell Files'
+```
 
 ### File Patterns
 

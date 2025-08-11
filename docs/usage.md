@@ -30,24 +30,83 @@ py-psscriptanalyzer --help
 
 Available options:
 
-- `--format`: Format PowerShell files instead of analyzing
-- `--severity {Error,Warning,Information,All}`: Filter results by severity level
-- `--help`: Show help message
+- `--format, -f`: Format PowerShell files instead of analyzing
+- `--severity, -s {Information,Warning,Error,All}`: Set minimum severity level (hierarchical)
+- `--recursive, -r`: Search for PowerShell files recursively from current directory
+- `--version, -v`: Show version information
+- `--help, -h`: Show help message
+
+### Severity Levels
+
+py-psscriptanalyzer uses a **hierarchical severity system**:
+
+- **`Information`**: Shows all issues (Information, Warning, Error) - most comprehensive
+- **`Warning`**: Shows Warning and Error issues (default) - recommended for most use cases
+- **`Error`**: Shows only Error issues - most strict, only critical problems
+
+The default severity level is **Warning**, but you can customize this using:
+
+1. **Command line argument**: `--severity Error`
+2. **Environment variable**: `export SEVERITY_LEVEL=Error`
+
+Command line arguments always override environment variable settings.
+
+### Environment Variables
+
+Set the `SEVERITY_LEVEL` environment variable to change the default severity:
+
+```bash
+# Set default to Error level
+export SEVERITY_LEVEL=Error
+py-psscriptanalyzer script.ps1
+
+# Override environment variable with command line
+export SEVERITY_LEVEL=Error
+py-psscriptanalyzer --severity Warning script.ps1  # Uses Warning, not Error
+```
+
+Valid values: `Information`, `Warning`, `Error`, `All`
 
 ### Examples
 
 #### Basic Analysis
 
 ```bash
-# Analyze with default settings (show all severities)
+# Analyze with default settings (Warning and Error issues)
 py-psscriptanalyzer MyScript.ps1
 
-# Show only errors and warnings
-py-psscriptanalyzer --severity Warning MyScript.ps1
+# Show all issues including informational
+py-psscriptanalyzer --severity Information MyScript.ps1
 
-# Show only errors
+# Show only critical errors
 py-psscriptanalyzer --severity Error MyScript.ps1
+
+# Search recursively for PowerShell files
+py-psscriptanalyzer --recursive
+
+# Use environment variable for default severity
+export SEVERITY_LEVEL=Error
+py-psscriptanalyzer MyScript.ps1  # Uses Error level
+
+# Override environment variable
+export SEVERITY_LEVEL=Error
+py-psscriptanalyzer --severity Information MyScript.ps1  # Uses Information level
 ```
+
+#### Recursive File Search
+
+```bash
+# Analyze all PowerShell files in current directory and subdirectories
+py-psscriptanalyzer --recursive
+
+# Combine with severity filtering
+py-psscriptanalyzer --recursive --severity Error
+
+# Combine with formatting (format all found files)
+py-psscriptanalyzer --recursive --format
+```
+
+The recursive search will find all files with extensions: `.ps1`, `.psm1`, `.psd1`
 
 #### Code Formatting
 
@@ -240,4 +299,53 @@ steps:
 1. **Standardize configuration** across team repositories
 2. **Document custom rules** and severity levels
 3. **Train team members** on PowerShell best practices
-4. **Review and update** rules regularly
+4. **Review analysis results** during code reviews
+
+## Quick Reference
+
+### Command Line Options
+
+| Option | Short | Description |
+|--------|-------|-------------|
+| `--format` | `-f` | Format files instead of analyzing |
+| `--severity` | `-s` | Set severity level (Information/Warning/Error) |
+| `--recursive` | `-r` | Search files recursively |
+| `--version` | `-v` | Show version information |
+| `--help` | `-h` | Show help message |
+
+### Severity Levels
+
+| Level | Shows | Use Case |
+|-------|-------|----------|
+| `Information` | All issues | Development, comprehensive analysis |
+| `Warning` | Warning + Error | Default, recommended for most projects |
+| `Error` | Error only | CI/CD, strict quality gates |
+
+### Environment Variables
+
+| Variable | Values | Default |
+|----------|--------|---------|
+| `SEVERITY_LEVEL` | Information, Warning, Error, All | Warning |
+
+### Common Commands
+
+```bash
+# Basic analysis
+py-psscriptanalyzer script.ps1
+
+# Recursive analysis with Error level
+py-psscriptanalyzer --recursive --severity Error
+
+# Format all files in project
+py-psscriptanalyzer --recursive --format
+
+# Use environment variable
+export SEVERITY_LEVEL=Information && py-psscriptanalyzer --recursive
+```
+
+### Team Best Practices
+
+1. **Standardize configuration** across team repositories
+2. **Document custom rules** and severity levels
+3. **Train team members** on PowerShell best practices
+4. **Review analysis results** during code reviews
