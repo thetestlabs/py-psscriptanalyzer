@@ -121,9 +121,34 @@ def generate_analysis_script(files_param: str, severity: str) -> str:
     """
     Generate PowerShell script for analyzing files.
 
-    Conditionally adds the Severity parameter: if "All" is selected, the parameter is omitted to get all severities.
+    Implements hierarchical severity filtering:
+    - Information: shows all issues (Information, Warning, Error)
+    - Warning: shows Warning and Error issues
+    - Error: shows only Error issues
+    - All: shows all issues (same as Information)
     """
-    severity_param = f"-Severity {severity}" if severity != "All" else ""
+    # Map our severity levels to PowerShell filtering logic
+    if severity in ["All", "Information"]:
+        # Show all issues - don't use -Severity parameter to get everything
+        severity_param = ""
+        filter_logic = ""
+    elif severity == "Warning":
+        # Show Warning and Error - don't use -Severity parameter and filter in PowerShell
+        severity_param = ""
+        filter_logic = """
+                # Filter to show only Warning and Error severity issues
+                $result = $result | Where-Object { $_.Severity -eq "Warning" -or $_.Severity -eq "Error" }"""
+    elif severity == "Error":
+        # Show only Error issues
+        severity_param = "-Severity Error"
+        filter_logic = ""
+    else:
+        # Fallback to Warning behavior
+        severity_param = ""
+        filter_logic = """
+                # Filter to show only Warning and Error severity issues
+                $result = $result | Where-Object { $_.Severity -eq "Warning" -or $_.Severity -eq "Error" }"""
+
     issue_reporting = _generate_issue_reporting_logic()
     error_handling = _generate_error_handling()
 
@@ -132,7 +157,7 @@ def generate_analysis_script(files_param: str, severity: str) -> str:
             $files = @({files_param})
             $issues = @()
             foreach ($file in $files) {{
-                $result = Invoke-ScriptAnalyzer -Path $file {severity_param}
+                $result = Invoke-ScriptAnalyzer -Path $file {severity_param}{filter_logic}
                 if ($result) {{
                     $issues += $result
                 }}
