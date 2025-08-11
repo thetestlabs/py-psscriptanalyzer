@@ -171,7 +171,7 @@ You can customize the hooks in your `.pre-commit-config.yaml`:
 ```yaml
   repos:
     - repo: https://github.com/thetestlabs/py-psscriptanalyzer
-      rev: v0.1.0
+      rev: v0.2.0
       hooks:
       # Analyzer with custom severity
       - id: py-psscriptanalyzer

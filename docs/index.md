@@ -28,7 +28,7 @@ changelog
    # .pre-commit-config.yaml
    repos:
      - repo: https://github.com/thetestlabs/py-psscriptanalyzer
-       rev: v0.1.0
+       rev: v0.2.0
        hooks:
          - id: py-psscriptanalyzer
          - id: py-psscriptanalyzer-format

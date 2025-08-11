@@ -9,8 +9,8 @@
 project = "py-psscriptanalyzer"
 copyright = "%Y, Chris McQuaid"  # noqa: A001
 author = "Chris McQuaid"
-version = "0.1"
-release = "0.1.0"
+version = "0.2"
+release = "0.2.0"
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration

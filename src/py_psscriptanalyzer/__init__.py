@@ -10,7 +10,7 @@ Key Features:
     - Configurable analysis rules
 """
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 
 from .core import main, run_script_analyzer
 from .powershell import check_psscriptanalyzer_installed, find_powershell, install_psscriptanalyzer
