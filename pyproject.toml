@@ -11,7 +11,7 @@ license = { text = "MIT" }
 authors = [{ name = "Chris McQuaid", email = "chris@thetestlabs.io" }]
 maintainers = [{ name = "Chris McQuaid", email = "chris@thetestlabs.io" }]
 requires-python = ">=3.9"
-dependencies = []
+dependencies = ["rich>=10.0.0"]
 keywords = [
     "powershell",
     "psscriptanalyzer",
@@ -68,7 +68,7 @@ dev = [
 ]
 
 [project.scripts]
-py-psscriptanalyzer = "py_psscriptanalyzer:main"
+py-psscriptanalyzer = "py_psscriptanalyzer.cli:main"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/py_psscriptanalyzer"]
