@@ -105,70 +105,70 @@ jobs:
           path: docs/_build/html/
           retention-days: 30
 
-#   deploy:
-#     name: Deploy to ReadTheDocs
-#     runs-on: ubuntu-latest
-#     needs: build-docs
+  deploy:
+    name: Deploy to ReadTheDocs
+    runs-on: ubuntu-latest
+    needs: build-docs
 
-#     steps:
-#       - name: Trigger ReadTheDocs build
-#         run: |
-#           curl -X POST \
-#             -H "Authorization: Token ${{ secrets.READTHEDOCS_TOKEN }}" \
-#             https://readthedocs.org/api/v3/projects/py-psscriptanalyzer/versions/latest/builds/
-#         continue-on-error: true  # Don't fail the workflow if RTD webhook fails
+    steps:
+      - name: Trigger ReadTheDocs build
+        run: |
+          curl -X POST \
+            -H "Authorization: Token ${{ secrets.READTHEDOCS_TOKEN }}" \
+            https://readthedocs.org/api/v3/projects/py-psscriptanalyzer/versions/latest/builds/
+        continue-on-error: true  # Don't fail the workflow if RTD webhook fails
 
-#   publish-pypi:
-#     name: Build and publish to PyPI
-#     runs-on: ubuntu-latest
-#     needs: [test, build-docs]
-#     environment:
-#       name: pypi
-#       url: https://pypi.org/p/py-psscriptanalyzer
-#     permissions:
-#       id-token: write  # IMPORTANT: this permission is mandatory for trusted publishing
+  publish-pypi:
+    name: Build and publish to PyPI
+    runs-on: ubuntu-latest
+    needs: [test, build-docs]
+    environment:
+      name: pypi
+      url: https://pypi.org/p/py-psscriptanalyzer
+    permissions:
+      id-token: write  # IMPORTANT: this permission is mandatory for trusted publishing
 
-#     steps:
-#       - name: Checkout code
-#         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
 
-#       - name: Install uv
-#         uses: astral-sh/setup-uv@e92bafb6253dcd438e0484186d7669ea7a8ca1cc
-#         with:
-#           version: "latest"
+      - name: Install uv
+        uses: astral-sh/setup-uv@e92bafb6253dcd438e0484186d7669ea7a8ca1cc
+        with:
+          version: "latest"
 
-#       - name: Set up Python
-#         run: uv python install 3.13
+      - name: Set up Python
+        run: uv python install 3.13
 
-#       - name: Verify version matches tag
-#         run: |
-#           import tomllib
-#           import sys
-#           import os
+      - name: Verify version matches tag
+        run: |
+          import tomllib
+          import sys
+          import os
 
-#           # Get the tag from the GitHub ref
-#           tag = os.environ['GITHUB_REF'].replace('refs/tags/v', '')
+          # Get the tag from the GitHub ref
+          tag = os.environ['GITHUB_REF'].replace('refs/tags/v', '')
 
-#           # Read version from pyproject.toml
-#           with open('pyproject.toml', 'rb') as f:
-#               data = tomllib.load(f)
-#               version = data['project']['version']
+          # Read version from pyproject.toml
+          with open('pyproject.toml', 'rb') as f:
+              data = tomllib.load(f)
+              version = data['project']['version']
 
-#           if tag != version:
-#               print(f"❌ Tag version ({tag}) doesn't match pyproject.toml version ({version})")
-#               sys.exit(1)
-#           else:
-#               print(f"✅ Tag version ({tag}) matches pyproject.toml version ({version})")
-#         shell: python
+          if tag != version:
+              print(f"❌ Tag version ({tag}) doesn't match pyproject.toml version ({version})")
+              sys.exit(1)
+          else:
+              print(f"✅ Tag version ({tag}) matches pyproject.toml version ({version})")
+        shell: python
 
-#       - name: Build package
-#         run: uv build
+      - name: Build package
+        run: uv build
 
-#       - name: Check package
-#         run: uv run twine check dist/*
+      - name: Check package
+        run: uv run twine check dist/*
 
-#       - name: Publish to PyPI
-#         uses: pypa/gh-action-pypi-publish@76f52bc884231f62b9a034ebfe128415bbaabdfc
-#         with:
-#           verbose: true
-#           print-hash: true
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@76f52bc884231f62b9a034ebfe128415bbaabdfc
+        with:
+          verbose: true
+          print-hash: true

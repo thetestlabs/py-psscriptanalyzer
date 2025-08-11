@@ -34,6 +34,89 @@ def generate_format_script(files_param: str) -> str:
         """
 
 
+def _generate_github_actions_output() -> str:
+    """Generate PowerShell code for GitHub Actions issue reporting."""
+    return """
+                        # Use GitHub Actions annotations
+                        $annotationType = switch ($issue.Severity) {
+                            "Error" { "error" }
+                            "Warning" { "warning" }
+                            "Information" { "notice" }
+                            default { "error" }
+                        }
+
+                        # Map severity for GitHub Actions display
+                        $displaySeverity = switch ($issue.Severity) {
+                            "Error" { "Error" }
+                            "Warning" { "Warning" }
+                            "Information" { "Notice" }
+                            default { "Error" }
+                        }
+
+                        # GitHub Actions annotation format
+                        $annotation = "::" + $annotationType + " file=" + $issue.ScriptName + `
+                            ",line=" + $issue.Line + ",title=" + $issue.RuleName + "::" + $issue.Message
+                        Write-Host $annotation
+
+                        # Also show regular output for readability with GitHub Actions terminology
+                        $header = "$($displaySeverity): $($location): $($issue.RuleName)"
+                        Write-Host $header
+                        Write-Host "  $($issue.Message)"
+                        Write-Host ""
+    """
+
+
+def _generate_terminal_output() -> str:
+    """Generate PowerShell code for terminal issue reporting."""
+    return """
+                        # Set color based on severity for local terminal
+                        $severityColor = switch ($issue.Severity) {
+                            "Error" { "Red" }
+                            "Warning" { "DarkYellow" }
+                            "Information" { "Cyan" }
+                            default { "Red" }
+                        }
+
+                        $header = "$($issue.Severity): $($location): $($issue.RuleName)"
+                        Write-Host $header -ForegroundColor $severityColor
+                        Write-Host "  $($issue.Message)" -ForegroundColor Gray
+                        Write-Host ""
+    """
+
+
+def _generate_issue_reporting_logic() -> str:
+    """Generate PowerShell code for issue reporting logic."""
+    github_output = _generate_github_actions_output()
+    terminal_output = _generate_terminal_output()
+
+    return f"""
+                foreach ($issue in $issues) {{
+                    $fileName = Split-Path -Leaf $issue.ScriptName
+                    $location = "$($fileName): Line $($issue.Line):1"
+
+                    if ($isGitHubActions) {{{github_output}
+                    }} else {{{terminal_output}
+                    }}
+                }}
+                Write-Host "Found $($issues.Count) issue(s)" -ForegroundColor Yellow
+    """
+
+
+def _generate_error_handling() -> str:
+    """Generate PowerShell code for error handling."""
+    return """
+        catch [System.IO.FileLoadException] {
+            Write-Error "Assembly loading error: $($_.Exception.Message)"
+            Write-Error "This may be due to .NET runtime compatibility issues."
+            Write-Error "Try updating PowerShell or reinstalling PSScriptAnalyzer."
+            exit 250
+        } catch {
+            Write-Error "Unexpected error: $($_.Exception.Message)"
+            exit 250
+        }
+    """
+
+
 def generate_analysis_script(files_param: str, severity: str) -> str:
     """
     Generate PowerShell script for analyzing files.
@@ -41,6 +124,8 @@ def generate_analysis_script(files_param: str, severity: str) -> str:
     Conditionally adds the Severity parameter: if "All" is selected, the parameter is omitted to get all severities.
     """
     severity_param = f"-Severity {severity}" if severity != "All" else ""
+    issue_reporting = _generate_issue_reporting_logic()
+    error_handling = _generate_error_handling()
 
     return f"""
         try {{
@@ -57,66 +142,11 @@ def generate_analysis_script(files_param: str, severity: str) -> str:
 
                 # Check if running in GitHub Actions
                 $isGitHubActions = $env:GITHUB_ACTIONS -eq "true"
-
-                foreach ($issue in $issues) {{
-                    $fileName = Split-Path -Leaf $issue.ScriptName
-                    $location = "$($fileName): Line $($issue.Line):1"
-
-                    if ($isGitHubActions) {{
-                        # Use GitHub Actions annotations
-                        $annotationType = switch ($issue.Severity) {{
-                            "Error" {{ "error" }}
-                            "Warning" {{ "warning" }}
-                            "Information" {{ "notice" }}
-                            default {{ "error" }}
-                        }}
-
-                        # Map severity for GitHub Actions display
-                        $displaySeverity = switch ($issue.Severity) {{
-                            "Error" {{ "Error" }}
-                            "Warning" {{ "Warning" }}
-                            "Information" {{ "Notice" }}
-                            default {{ "Error" }}
-                        }}
-
-                        # GitHub Actions annotation format
-                        $annotation = "::" + $annotationType + " file=" + $issue.ScriptName + `
-                            ",line=" + $issue.Line + ",title=" + $issue.RuleName + "::" + $issue.Message
-                        Write-Host $annotation
-
-                        # Also show regular output for readability with GitHub Actions terminology
-                        $header = "$($displaySeverity): $($location): $($issue.RuleName)"
-                        Write-Host $header
-                        Write-Host "  $($issue.Message)"
-                        Write-Host ""
-                    }} else {{
-                        # Set color based on severity for local terminal
-                        $severityColor = switch ($issue.Severity) {{
-                            "Error" {{ "Red" }}
-                            "Warning" {{ "DarkYellow" }}
-                            "Information" {{ "Cyan" }}
-                            default {{ "Red" }}
-                        }}
-
-                        $header = "$($issue.Severity): $($location): $($issue.RuleName)"
-                        Write-Host $header -ForegroundColor $severityColor
-                        Write-Host "  $($issue.Message)" -ForegroundColor Gray
-                        Write-Host ""
-                    }}
-                }}
-                Write-Host "Found $($issues.Count) issue(s)" -ForegroundColor Yellow
+{issue_reporting}
                 exit 1
             }} else {{
                 Write-Host "No issues found" -ForegroundColor Green
                 exit 0
             }}
-        }} catch [System.IO.FileLoadException] {{
-            Write-Error "Assembly loading error: $($_.Exception.Message)"
-            Write-Error "This may be due to .NET runtime compatibility issues."
-            Write-Error "Try updating PowerShell or reinstalling PSScriptAnalyzer."
-            exit 250
-        }} catch {{
-            Write-Error "Unexpected error: $($_.Exception.Message)"
-            exit 250
-        }}
+        }} {error_handling}
         """
