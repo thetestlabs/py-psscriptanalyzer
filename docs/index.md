@@ -28,7 +28,7 @@ changelog
    # .pre-commit-config.yaml
    repos:
      - repo: https://github.com/thetestlabs/py-psscriptanalyzer
-       rev: v0.1.0
+       rev: v0.2.0
        hooks:
          - id: py-psscriptanalyzer
          - id: py-psscriptanalyzer-format
@@ -48,16 +48,6 @@ changelog
 - **Cross-Platform**: Works on Windows, macOS, and Linux
 - **Configurable**: Customizable severity levels and rule selection
 - **Fast**: Efficient processing with proper error handling
-- **Modern Python**: Built with modern Python packaging standards and src/ layout
+- **Modern Python**: Built with modern Python packaging standards
 - **CLI Tool**: Standalone command-line interface
 - **Pre-commit Integration**: Ready-to-use pre-commit hooks
-
-## What's New
-
-This is a complete rewrite and repackaging of the original `psscriptanalyzer-pre-commit` with:
-
-- **New Package Name**: `py-psscriptanalyzer` (more descriptive and available on PyPI)
-- **Modern Package Structure**: Uses src/ layout for better organization
-- **Standalone CLI**: Available as `py-psscriptanalyzer` command
-- **Updated Dependencies**: Latest tooling and dependencies
-- **Enhanced Documentation**: Comprehensive guides and examples

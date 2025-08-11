@@ -1,6 +1,30 @@
 # Change Log
 
-## [0.1.0] - 2025-08-10
+## [0.2.0] - 2025-08-11
+
+### Added
+
+- **Hierarchical Severity System**: Implemented hierarchical severity filtering where each level includes more severe issues
+  - `Information`: Shows all issues (Information + Warning + Error)
+  - `Warning`: Shows Warning and Error issues (default)
+  - `Error`: Shows only Error issues
+- **Environment Variable Support**: Added `SEVERITY_LEVEL` environment variable to set default severity level
+- **Recursive File Search**: Added `--recursive/-r` flag to search for PowerShell files recursively from current directory
+- **Modern CLI with Rich Formatting**: Enhanced CLI interface with Rich library for beautiful terminal output
+- **Improved Help System**: Professional help output with styled sections, tables, and examples
+
+### Changed
+
+- **Default Severity Behavior**: Changed default from showing all issues to showing Warning and Error issues only
+- **CLI Architecture**: Modernized CLI architecture with Rich-based formatting and better error handling
+- **Command Line Arguments**: Added short flag support (`-s`, `-r`, `-f`, `-v`, `-h`)
+
+### Fixed
+
+- **PowerShell Script Generation**: Improved PowerShell script generation for better filtering logic
+- **Code Quality**: Refactored large functions to improve maintainability and readability
+
+## [0.1.0] - 2025-08-11
 
 ### Added
 
@@ -23,6 +47,7 @@
 - **Environment-aware Output**: Different output formats for local development vs CI/CD environments
 - **Zero Dependencies**: No external Python dependencies required for core functionality
 - **Python 3.9+ Support**: Compatible with Python 3.9 through 3.13
+- **Clean Code Architecture**: Modular codebase with proper separation of concerns and maintainable functions
 
 ### Documentation
 
@@ -31,12 +56,14 @@
 - **API Reference**: Complete function documentation with examples
 - **CI/CD Examples**: Ready-to-use examples for GitHub Actions and other CI platforms
 - **Troubleshooting Guide**: Common issues and solutions
+- **Markdown-first Documentation**: Clean documentation structure using MyST Markdown parser
 
 ### Package Management
 
 - **PyPI Distribution**: Available via `pip install py-psscriptanalyzer`
 - **MIT License**: Open source with permissive MIT license
 - **Professional Metadata**: Complete package metadata with proper classifiers and keywords
+- **Automated Release Pipeline**: Full CI/CD pipeline with automated testing, building, and publishing
 
 ### Command Line Interface
 
@@ -44,3 +71,11 @@
 - **Format Mode**: Support for `--format` flag to format PowerShell files
 - **Severity Filtering**: Command-line options to filter by severity levels
 - **File Pattern Matching**: Automatic detection and processing of PowerShell files
+
+### Quality Assurance
+
+- **Comprehensive Test Suite**: Full test coverage with unit tests and integration tests
+- **Multi-platform Testing**: Automated testing on Windows, macOS, and Linux
+- **Code Quality Tools**: Integrated with Ruff, MyPy, and pre-commit hooks
+- **Security Best Practices**: Secure subprocess handling with proper input sanitization
+- **Expected Failure Handling**: Robust test infrastructure that correctly handles expected analysis failures
