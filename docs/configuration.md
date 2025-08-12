@@ -71,7 +71,7 @@ repos:
     hooks:
       - id: py-psscriptanalyzer
         args: ["--security-only"]  # Only show security-related issues
-        
+
       # Or use other category filters:
       # args: ["--style-only"]
       # args: ["--performance-only"]
@@ -93,7 +93,7 @@ repos:
       - id: py-psscriptanalyzer
         name: Security Rules Check
         args: ["--include-rules", "PSAvoidUsingPlainTextForPassword,PSAvoidUsingConvertToSecureStringWithPlainText"]
-        
+
       # Exclude specific rules
       - id: py-psscriptanalyzer
         name: General Analysis (No Style)
@@ -112,7 +112,7 @@ repos:
       # Generate JSON output
       - id: py-psscriptanalyzer
         args: ["--output-format", "json"]
-        
+
       # Generate SARIF output for GitHub Code Scanning
       - id: py-psscriptanalyzer
         args: ["--output-format", "sarif", "--output-file", "psscriptanalyzer-results.sarif"]
@@ -237,13 +237,13 @@ repos:
         name: PowerShell Security Check
         args: ["--security-only", "--severity", "Error"]
         files: ^(src|modules)/.*\.ps1$
-        
+
       # Style analysis (excluding certain rules)
       - id: py-psscriptanalyzer
         name: PowerShell Style Check
         args: ["--style-only", "--exclude-rules", "PSAvoidSemicolonsAsLineTerminators"]
         files: ^(src|modules)/.*\.ps1$
-        
+
       # Format all PowerShell files
       - id: py-psscriptanalyzer-format
 ```

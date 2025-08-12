@@ -1,8 +1,5 @@
 """Tests for SARIF output with rule categories."""
 
-import json
-from unittest.mock import patch, MagicMock
-
 from py_psscriptanalyzer.core import convert_to_sarif
 
 
@@ -18,7 +15,7 @@ def test_convert_to_sarif_with_rule_categories():
             "Line": 10,
             "Column": 5,
             "IsSecurityRule": True,
-            "RuleCategory": "Security"
+            "RuleCategory": "Security",
         },
         {
             "RuleName": "PSAlignAssignmentStatement",
@@ -27,7 +24,7 @@ def test_convert_to_sarif_with_rule_categories():
             "ScriptPath": "test.ps1",
             "Line": 15,
             "Column": 8,
-            "RuleCategory": "Style"
+            "RuleCategory": "Style",
         },
         {
             "RuleName": "PSAvoidUsingInvokeExpression",
@@ -36,7 +33,7 @@ def test_convert_to_sarif_with_rule_categories():
             "ScriptPath": "test.ps1",
             "Line": 20,
             "Column": 3,
-            "RuleCategory": "Performance"
+            "RuleCategory": "Performance",
         },
         {
             "RuleName": "PSUseApprovedVerbs",
@@ -45,28 +42,28 @@ def test_convert_to_sarif_with_rule_categories():
             "ScriptPath": "test.ps1",
             "Line": 25,
             "Column": 1,
-            "RuleCategory": "BestPractices"
-        }
+            "RuleCategory": "BestPractices",
+        },
     ]
-    
+
     files = ["test.ps1"]
     sarif_data = convert_to_sarif(ps_results, files)
-    
+
     # Check that rules have correct tags in SARIF output
     rules = sarif_data["runs"][0]["tool"]["driver"]["rules"]
-    
+
     # Find rules by ID
     security_rule = next(rule for rule in rules if rule["id"] == "AvoidUsingPlainTextForPassword")
     style_rule = next(rule for rule in rules if rule["id"] == "PSAlignAssignmentStatement")
     performance_rule = next(rule for rule in rules if rule["id"] == "PSAvoidUsingInvokeExpression")
     best_practices_rule = next(rule for rule in rules if rule["id"] == "PSUseApprovedVerbs")
-    
+
     # Verify tags
     assert "security" in security_rule["properties"]["tags"]
     assert "style" in style_rule["properties"]["tags"]
     assert "performance" in performance_rule["properties"]["tags"]
     assert "bestpractices" in best_practices_rule["properties"]["tags"]
-    
+
     # Verify categories
     assert security_rule["properties"]["category"] == "Security"
     assert style_rule["properties"]["category"] == "Style"

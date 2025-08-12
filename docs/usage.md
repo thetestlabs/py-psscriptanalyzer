@@ -345,26 +345,26 @@ jobs:
     permissions:
       # Required for GitHub SARIF upload
       security-events: write
-      
+
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-          
+
       - name: Install PowerShell
         run: |
           sudo snap install powershell --classic
-          
+
       - name: Install py-psscriptanalyzer
         run: pip install py-psscriptanalyzer
-        
+
       - name: Run security scan
         run: |
           py-psscriptanalyzer --security-only --recursive --output-format sarif --output-file powershell-security.sarif
-          
+
       - name: Upload SARIF results
         uses: github/codeql-action/upload-sarif@v2
         with:
