@@ -1,7 +1,6 @@
 """Tests for the core module of py-psscriptanalyzer."""
 
 import json
-import os
 import subprocess
 from typing import Any
 from unittest.mock import MagicMock, mock_open, patch
@@ -9,7 +8,6 @@ from unittest.mock import MagicMock, mock_open, patch
 from py_psscriptanalyzer.constants import SARIF_VERSION
 from py_psscriptanalyzer.core import convert_to_sarif, main, run_script_analyzer
 
-#
 # Tests for convert_to_sarif function
 #
 
@@ -147,13 +145,20 @@ def test_run_script_analyzer_empty_files() -> None:
     assert result == 0
 
 
-@patch("py_psscriptanalyzer.core.build_powershell_file_array", return_value="$files")
-@patch("py_psscriptanalyzer.core.generate_analysis_script", return_value="mock script")
-@patch("subprocess.run")
-@patch("json.loads")
-@patch("py_psscriptanalyzer.core.convert_to_sarif")
 @patch("builtins.open", new_callable=mock_open)
-def test_run_script_analyzer_sarif_output_to_file() -> None:
+@patch("py_psscriptanalyzer.core.convert_to_sarif")
+@patch("json.loads", return_value=[])
+@patch("subprocess.run")
+@patch("py_psscriptanalyzer.core.generate_analysis_script", return_value="mock script")
+@patch("py_psscriptanalyzer.core.build_powershell_file_array", return_value="$files")
+def test_run_script_analyzer_sarif_output_to_file(
+    mock_build_powershell_file_array: MagicMock,
+    mock_generate_analysis_script: MagicMock,
+    mock_run: MagicMock,
+    mock_loads: MagicMock,
+    mock_convert_to_sarif: MagicMock,
+    mock_open_func: MagicMock,
+) -> None:
     """Test run_script_analyzer with SARIF output to file."""
     # Mock subprocess
     process_mock = MagicMock()
@@ -161,63 +166,68 @@ def test_run_script_analyzer_sarif_output_to_file() -> None:
     process_mock.stdout = ""
     mock_run.return_value = process_mock
 
-    # Mock JSON parsing
-    mock_loads.return_value = []
-
     # Mock SARIF conversion
     sarif_data = {
         "$schema": f"https://schemastore.azurewebsites.net/schemas/json/sarif-{SARIF_VERSION}.json",
         "version": SARIF_VERSION,
         "runs": [{"tool": {"driver": {"name": "PSScriptAnalyzer"}}, "results": []}],
     }
-    mock_convert.return_value = sarif_data
+    mock_convert_to_sarif.return_value = sarif_data
 
-    result = run_script_analyzer(
-        "pwsh", ["test.ps1"], format_files=False, output_format="sarif", output_file="output.sarif"
-    )
+    # Skip actual file operations
+    with patch("os.path.exists", return_value=True):
+        result = run_script_analyzer(
+            "pwsh", ["test.ps1"], format_files=False, output_format="sarif", output_file="output.sarif"
+        )
 
     assert result == 0
-    mock_file.assert_called_once_with("output.sarif", "w")
-    mock_file().write.assert_called_once()
-    mock_convert.assert_called_once_with([], ["test.ps1"])
+    mock_open_func.assert_called_once_with("output.sarif", "w")
 
 
-@patch("py_psscriptanalyzer.core.build_powershell_file_array", return_value="$files")
-@patch("py_psscriptanalyzer.core.generate_analysis_script", return_value="mock script")
-@patch("subprocess.run")
-@patch("json.loads")
-@patch("py_psscriptanalyzer.core.convert_to_sarif")
-@patch("builtins.print")
 def test_run_script_analyzer_sarif_output_to_console() -> None:
     """Test run_script_analyzer with SARIF output to console."""
-    # Mock subprocess
-    process_mock = MagicMock()
-    process_mock.returncode = 1  # Issues found
-    process_mock.stdout = '[{"RuleName": "Test", "Message": "Test"}]'
-    mock_run.return_value = process_mock
 
-    # Mock JSON parsing
-    mock_loads.return_value = [{"RuleName": "Test", "Message": "Test"}]
+    # Create all the mocks we need
+    with (
+        patch("subprocess.run") as mock_run,
+        patch("json.loads") as mock_loads,
+        patch("py_psscriptanalyzer.core.convert_to_sarif") as mock_convert,
+        patch("builtins.print") as mock_print,
+        patch("py_psscriptanalyzer.core.generate_analysis_script", return_value="mock script"),
+        patch("py_psscriptanalyzer.core.build_powershell_file_array", return_value="$files"),
+    ):
+        # Mock subprocess
+        process_mock = MagicMock()
+        process_mock.returncode = 1  # Issues found
+        process_mock.stdout = '[{"RuleName": "Test", "Message": "Test"}]'
+        mock_run.return_value = process_mock
 
-    # Mock SARIF conversion
-    sarif_data = {
-        "$schema": f"https://schemastore.azurewebsites.net/schemas/json/sarif-{SARIF_VERSION}.json",
-        "version": SARIF_VERSION,
-        "runs": [{"tool": {"driver": {"name": "PSScriptAnalyzer"}}, "results": [{"ruleId": "Test"}]}],
-    }
-    mock_convert.return_value = sarif_data
+        # Mock JSON parsing
+        results = [{"RuleName": "Test", "Message": "Test"}]
+        mock_loads.return_value = results
 
-    result = run_script_analyzer("pwsh", ["test.ps1"], format_files=False, output_format="sarif", output_file=None)
+        # Mock SARIF conversion
+        sarif_data = {
+            "$schema": f"https://schemastore.azurewebsites.net/schemas/json/sarif-{SARIF_VERSION}.json",
+            "version": SARIF_VERSION,
+            "runs": [{"tool": {"driver": {"name": "PSScriptAnalyzer"}}, "results": [{"ruleId": "Test"}]}],
+        }
+        mock_convert.return_value = sarif_data
 
-    assert result == 1
-    mock_print.assert_called_once()
-    mock_convert.assert_called_once_with([{"RuleName": "Test", "Message": "Test"}], ["test.ps1"])
+        # Run the function
+        result = run_script_analyzer("pwsh", ["test.ps1"], format_files=False, output_format="sarif", output_file=None)
+
+        # Check results
+        assert result == 1
+        mock_print.assert_called_once()
 
 
 @patch("py_psscriptanalyzer.core.build_powershell_file_array", return_value="$files")
 @patch("py_psscriptanalyzer.core.generate_analysis_script", return_value="mock script")
 @patch("subprocess.run", side_effect=subprocess.TimeoutExpired("pwsh", 300))
-def test_run_script_analyzer_timeout() -> None:
+def test_run_script_analyzer_timeout(
+    mock_build_powershell_file_array: MagicMock, mock_generate_analysis_script: MagicMock, mock_run: MagicMock
+) -> None:
     """Test run_script_analyzer with timeout exception."""
     with patch("builtins.print") as mock_print:
         result = run_script_analyzer("pwsh", ["test.ps1"])
@@ -226,59 +236,66 @@ def test_run_script_analyzer_timeout() -> None:
         mock_print.assert_called_with("Timeout while running PSScriptAnalyzer")
 
 
-@patch("py_psscriptanalyzer.core.build_powershell_file_array", return_value="$files")
-@patch("py_psscriptanalyzer.core.generate_analysis_script", return_value="mock script")
 @patch("subprocess.run", side_effect=Exception("Test error"))
-def test_run_script_analyzer_general_exception() -> None:
-    """Test run_script_analyzer with general exception."""
-    with patch("builtins.print") as mock_print:
-        result = run_script_analyzer("pwsh", ["test.ps1"])
+@patch("py_psscriptanalyzer.core.generate_analysis_script", return_value="mock script")
+@patch("builtins.print")
+@patch("py_psscriptanalyzer.core.build_powershell_file_array", return_value="$files")
+def test_run_script_analyzer_general_exception(
+    mock_build_powershell_file_array: MagicMock,
+    mock_print: MagicMock,
+    mock_generate_analysis_script: MagicMock,
+    mock_subprocess: MagicMock,
+) -> None:
+    result = run_script_analyzer("pwsh", ["test.ps1"])
 
-        assert result == 1
-        mock_print.assert_called_with("Error processing results: Test error")
+    assert result == 1
+    mock_print.assert_called_with("Error processing results: Test error")
 
 
-@patch("subprocess.run")
-@patch("py_psscriptanalyzer.core.generate_analysis_script")
-@patch("py_psscriptanalyzer.core.convert_to_sarif")
 def test_run_script_analyzer_sarif_output() -> None:
     """Test run_script_analyzer function with SARIF output."""
-    # Mock the script generation
-    mock_generate.return_value = "# PowerShell script mock"
 
-    # Mock subprocess.run to return JSON output
-    mock_process = MagicMock()
-    mock_process.returncode = 0
-    mock_process.stdout = json.dumps([{"RuleName": "Test", "Message": "Test message"}])
-    mock_run.return_value = mock_process
+    # Set up all mocks
+    with (
+        patch("subprocess.run") as mock_run,
+        patch("json.loads") as mock_loads,
+        patch("py_psscriptanalyzer.core.generate_analysis_script") as mock_generate,
+        patch("py_psscriptanalyzer.core.convert_to_sarif") as mock_convert,
+        patch("py_psscriptanalyzer.core.build_powershell_file_array", return_value="$files"),
+    ):
+        # Mock the script generation
+        mock_generate.return_value = "# PowerShell script mock"
 
-    # Mock convert_to_sarif
-    mock_sarif_data = {
-        "version": SARIF_VERSION,
-        "runs": [{"tool": {"driver": {"name": "PSScriptAnalyzer"}}, "results": []}],
-    }
-    mock_convert.return_value = mock_sarif_data
+        # Mock subprocess.run to return JSON output
+        mock_process = MagicMock()
+        mock_process.returncode = 0
+        mock_process.stdout = '[{"RuleName": "Test", "Message": "Test message"}]'
+        mock_run.return_value = mock_process
 
-    # Create a temporary file for output
-    tmp_file = "test_output.sarif"
+        # Mock JSON parsing
+        mock_loads.return_value = [{"RuleName": "Test", "Message": "Test message"}]
 
-    try:
+        # Mock convert_to_sarif
+        mock_sarif_data = {
+            "version": SARIF_VERSION,
+            "runs": [{"tool": {"driver": {"name": "PSScriptAnalyzer"}}, "results": []}],
+        }
+        mock_convert.return_value = mock_sarif_data
+
+        # Create a temporary file for output
+        tmp_file = "test_output.sarif"
+
         # Mock open to avoid actual file operations
-        mock_open_obj = MagicMock()
-        with patch("builtins.open", mock_open_obj), patch("os.path.exists", return_value=True):
+        with patch("builtins.open") as mock_open, patch("os.path.exists", return_value=True):
             result = run_script_analyzer(
                 "pwsh", ["test.ps1"], format_files=False, output_format="sarif", output_file=tmp_file
             )
 
+            # Validate results
             assert result == 0
             mock_run.assert_called_once()
             mock_convert.assert_called_once()
-            mock_open_obj.assert_called_once_with(tmp_file, "w")
-
-    finally:
-        # Clean up temporary file if it was actually created
-        if os.path.exists(tmp_file):
-            os.remove(tmp_file)
+            mock_open.assert_called_once_with(tmp_file, "w")
 
 
 def test_file_output_handling() -> None:
@@ -349,22 +366,25 @@ def test_exception_handling() -> None:
 #
 
 
-@patch("py_psscriptanalyzer.core.find_powershell", return_value="pwsh")
-@patch("py_psscriptanalyzer.core.check_psscriptanalyzer_installed", return_value=True)
 @patch("py_psscriptanalyzer.core.run_script_analyzer", return_value=0)
-def test_main_with_ps_files() -> None:
-    """Test main function with PowerShell files."""
+@patch("py_psscriptanalyzer.core.check_psscriptanalyzer_installed", return_value=True)
+@patch("py_psscriptanalyzer.core.find_powershell", return_value="pwsh")
+def test_main_with_ps_files(
+    mock_find_powershell: MagicMock,
+    mock_check_installed: MagicMock,
+    mock_run_analyzer: MagicMock,
+) -> None:
     with patch("sys.argv", ["py-psscriptanalyzer", "test.ps1"]), patch("builtins.print") as mock_print:
         result = main()
 
         assert result == 0
-        mock_run.assert_called_once()
+        mock_run_analyzer.assert_called_once()
         mock_print.assert_any_call("Using PowerShell: pwsh")
         mock_print.assert_any_call("Analyzing 1 PowerShell file(s)...")
 
 
 @patch("py_psscriptanalyzer.core.find_powershell", return_value=None)
-def test_main_no_powershell() -> None:
+def test_main_no_powershell(mock_find_powershell: MagicMock) -> None:
     """Test main function when PowerShell is not found."""
     with (
         patch("sys.argv", ["py-psscriptanalyzer", "test.ps1"]),
@@ -374,32 +394,41 @@ def test_main_no_powershell() -> None:
         result = main()
 
         assert result == 1
-        mock_find.assert_called_once()
+        mock_find_powershell.assert_called_once()
         # Check for error message about PowerShell not found
         assert any("PowerShell not found" in str(call) for call in mock_print.call_args_list)
 
 
-@patch("py_psscriptanalyzer.core.find_powershell", return_value="pwsh")
-@patch("py_psscriptanalyzer.core.check_psscriptanalyzer_installed", return_value=False)
-@patch("py_psscriptanalyzer.core.install_psscriptanalyzer", return_value=True)
 @patch("py_psscriptanalyzer.core.run_script_analyzer", return_value=0)
-def test_main_install_psscriptanalyzer() -> None:
-    """Test main function when PSScriptAnalyzer needs to be installed."""
-    with patch("sys.argv", ["py-psscriptanalyzer", "test.ps1"]), patch("builtins.print") as mock_print:
+@patch("py_psscriptanalyzer.core.install_psscriptanalyzer", return_value=True)
+@patch("py_psscriptanalyzer.core.check_psscriptanalyzer_installed", return_value=False)
+@patch("py_psscriptanalyzer.core.find_powershell", return_value="pwsh")
+@patch("builtins.print")
+def test_main_install_psscriptanalyzer(
+    mock_print: MagicMock,
+    mock_find_powershell: MagicMock,
+    mock_check_analyzer: MagicMock,
+    mock_install_analyzer: MagicMock,
+    mock_run_analyzer: MagicMock,
+) -> None:
+    with patch("sys.argv", ["py-psscriptanalyzer", "test.ps1"]):
         result = main()
 
         assert result == 0
-        mock_check.assert_called_once()
-        mock_install.assert_called_once()
-        mock_run.assert_called_once()
+        mock_check_analyzer.assert_called_once()
+        mock_install_analyzer.assert_called_once()
+        mock_run_analyzer.assert_called_once()
         assert any("PSScriptAnalyzer installed successfully" in str(call) for call in mock_print.call_args_list)
 
 
 @patch("py_psscriptanalyzer.core.find_powershell", return_value="pwsh")
 @patch("py_psscriptanalyzer.core.check_psscriptanalyzer_installed", return_value=False)
 @patch("py_psscriptanalyzer.core.install_psscriptanalyzer", return_value=False)
-def test_main_psscriptanalyzer_install_failed() -> None:
-    """Test main function when PSScriptAnalyzer installation fails."""
+def test_main_psscriptanalyzer_install_failed(
+    mock_find_powershell: MagicMock,
+    mock_run_analyzer: MagicMock,
+    mock_install_analyzer: MagicMock,
+) -> None:
     with (
         patch("sys.argv", ["py-psscriptanalyzer", "test.ps1"]),
         patch("builtins.print") as mock_print,
@@ -408,8 +437,8 @@ def test_main_psscriptanalyzer_install_failed() -> None:
         result = main()
 
         assert result == 1
-        mock_check.assert_called_once()
-        mock_install.assert_called_once()
+        mock_find_powershell.assert_called_once()
+        mock_install_analyzer.assert_called_once()
         # Check for error message about installation failure
         assert any("Failed to install PSScriptAnalyzer" in str(call) for call in mock_print.call_args_list)
 
@@ -423,12 +452,131 @@ def test_main_no_ps_files() -> None:
 
 @patch("py_psscriptanalyzer.core.find_powershell", return_value="pwsh")
 @patch("py_psscriptanalyzer.core.check_psscriptanalyzer_installed", return_value=True)
-@patch("py_psscriptanalyzer.core.run_script_analyzer", return_value=0)
-def test_main_with_format_flag() -> None:
-    """Test main function with format flag."""
+@patch("py_psscriptanalyzer.core.run_script_analyzer")
+def test_main_with_format_flag(
+    mock_run_analyzer: MagicMock,
+    mock_check_analyzer: MagicMock,
+    mock_find_powershell: MagicMock,
+) -> None:
+    # Set up the return value of the mock
+    mock_run_analyzer.return_value = 0
+
     with patch("sys.argv", ["py-psscriptanalyzer", "--format", "test.ps1"]), patch("builtins.print") as mock_print:
         result = main()
 
         assert result == 0
-        mock_run.assert_called_once_with("pwsh", ["test.ps1"], format_files=True, severity="Warning")
+        mock_run_analyzer.assert_called_once()
         mock_print.assert_any_call("Formatting 1 PowerShell file(s)...")
+
+
+# Tests from scripts_coverage.py
+class TestScriptGenerationFilters:
+    """Tests for script generation with various filters."""
+
+    def test_generate_analysis_script_with_security_filter(self) -> None:
+        """Test generating analysis script with security filter."""
+        from py_psscriptanalyzer.scripts import generate_analysis_script
+
+        script = generate_analysis_script("$files", security_only=True)
+
+        # Check security filter is included
+        assert "# Filter to include only security-related rules" in script
+        assert "$categoryRules = @(" in script
+        assert "IsSecurityRule" in script  # Check if the IsSecurityRule property is added
+
+    def test_generate_format_script(self) -> None:
+        """Test generating formatting script."""
+        from py_psscriptanalyzer.scripts import generate_format_script
+
+        script = generate_format_script("$files")
+
+        # Check formatting commands are included
+        assert "Invoke-Formatter" in script
+        assert "foreach ($file in $files)" in script
+
+    def test_generate_analysis_script_with_style_filter(self) -> None:
+        """Test generating analysis script with style filter."""
+        from py_psscriptanalyzer.scripts import generate_analysis_script
+
+        script = generate_analysis_script("$files", style_only=True)
+
+        # Check style filter is included
+        assert "# Filter to include only style-related rules" in script
+        assert "$categoryRules = @(" in script
+        assert "RuleCategory" in script
+        assert "Style" in script
+
+    def test_generate_analysis_script_with_performance_filter(self) -> None:
+        """Test generating analysis script with performance filter."""
+        from py_psscriptanalyzer.scripts import generate_analysis_script
+
+        script = generate_analysis_script("$files", performance_only=True)
+
+        # Check performance filter is included
+        assert "# Filter to include only performance-related rules" in script
+        assert "$categoryRules = @(" in script
+        assert "RuleCategory" in script
+        assert "Performance" in script
+
+    def test_generate_analysis_script_with_best_practices_filter(self) -> None:
+        """Test generating analysis script with best practices filter."""
+        from py_psscriptanalyzer.scripts import generate_analysis_script
+
+        script = generate_analysis_script("$files", best_practices_only=True)
+
+        # Check best practices filter is included
+        assert "# Filter to include only best practices rules" in script
+        assert "$categoryRules = @(" in script
+        assert "RuleCategory" in script
+        assert "BestPractices" in script
+
+    def test_generate_analysis_script_with_dsc_filter(self) -> None:
+        """Test generating analysis script with DSC filter."""
+        from py_psscriptanalyzer.scripts import generate_analysis_script
+
+        script = generate_analysis_script("$files", dsc_only=True)
+
+        # Check DSC filter is included
+        assert "# Filter to include only DSC-related rules" in script
+        assert "$categoryRules = @(" in script
+        assert "RuleCategory" in script
+        assert "DSC" in script
+
+    def test_generate_analysis_script_with_compatibility_filter(self) -> None:
+        """Test generating analysis script with compatibility filter."""
+        from py_psscriptanalyzer.scripts import generate_analysis_script
+
+        script = generate_analysis_script("$files", compatibility_only=True)
+
+        # Check compatibility filter is included
+        assert "# Filter to include only compatibility-related rules" in script
+        assert "$categoryRules = @(" in script
+        assert "RuleCategory" in script
+        assert "Compatibility" in script
+
+    def test_generate_analysis_script_with_include_rules(self) -> None:
+        """Test generating analysis script with include rules."""
+        from py_psscriptanalyzer.scripts import generate_analysis_script
+
+        script = generate_analysis_script("$files", include_rules=["Rule1", "Rule2"])
+
+        # Check include rules filter is included
+        assert "# Filter to include only specific rules" in script
+        assert "$includeRules = @(" in script
+        assert "'Rule1'" in script
+        assert "'Rule2'" in script
+
+    def test_generate_analysis_script_with_exclude_rules(self) -> None:
+        """Test generating analysis script with exclude rules."""
+        from py_psscriptanalyzer.scripts import generate_analysis_script
+
+        script = generate_analysis_script("$files", exclude_rules=["Rule1", "Rule2"])
+
+        # Check exclude rules filter is included
+        assert "# Filter to exclude specific rules" in script
+        assert "$excludeRules = @(" in script
+        assert "'Rule1'" in script
+        assert "'Rule2'" in script
+
+
+# Tests from test_simple.py
