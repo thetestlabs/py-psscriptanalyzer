@@ -48,6 +48,25 @@ Issues = "https://github.com/thetestlabs/py-psscriptanalyzer/issues"
 Documentation = "https://py-psscriptanalyzer.thetestlabs.io/"
 Changelog = "https://github.com/thetestlabs/py-psscriptanalyzer/blob/main/CHANGELOG.md"
 
+[project.optional-dependencies]
+dev = [
+    "build>=1.3.0",
+    "mypy>=1.17.1",
+    "pre-commit>=4.2.0",
+    "pytest>=8.4.1",
+    "pytest-cov>=6.2.1",
+    "ruff>=0.12.7",
+    "twine>=6.1.0",
+]
+docs = [
+    "sphinx>=7.1.0",
+    "sphinx-rtd-theme>=2.0.0",
+    "myst-parser>=3.0.1",
+    "sphinx-autodoc-typehints>=2.3.0",
+    "sphinx-copybutton>=0.5.2",
+    "linkify-it-py>=2.0.0",
+]
+
 [dependency-groups]
 dev = [
     "build>=1.3.0",
