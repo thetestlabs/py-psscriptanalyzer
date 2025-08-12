@@ -1,9 +1,4 @@
 repos:
-  - repo: https://github.com/pycqa/isort
-    rev: 5.11.2
-    hooks:
-      - id: isort
-        name: isort (python)
   - repo: https://gitlab.com/vojko.pribudic.foss/pre-commit-update
     rev: b8b6637a9c7e27a7354de9f4f846ce3b6e746f5f
     hooks:

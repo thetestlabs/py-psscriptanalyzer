@@ -117,7 +117,7 @@ def run_script_analyzer(
     except Exception as e:
         print(f"Error processing results: {e}")
         return 1
-        
+
     return 0
 
 
