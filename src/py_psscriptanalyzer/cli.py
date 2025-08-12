@@ -142,6 +142,34 @@ def create_parser() -> argparse.ArgumentParser:
         help="Severity level to report (default: from SEVERITY_LEVEL env var or Warning)",
     )
 
+    # Rule category filters
+    rule_filter_group = parser.add_argument_group("Rule category filters")
+    rule_filter_group.add_argument("--security-only", action="store_true", help="Only show security-related findings")
+    rule_filter_group.add_argument("--style-only", action="store_true", help="Only show code style-related findings")
+    rule_filter_group.add_argument(
+        "--performance-only", action="store_true", help="Only show performance-related findings"
+    )
+    rule_filter_group.add_argument(
+        "--best-practices-only", action="store_true", help="Only show best practices-related findings"
+    )
+    rule_filter_group.add_argument(
+        "--dsc-only", action="store_true", help="Only show DSC (Desired State Configuration) related findings"
+    )
+    rule_filter_group.add_argument(
+        "--compatibility-only", action="store_true", help="Only show compatibility-related findings"
+    )
+
+    # Custom rule selection
+    rule_filter_group.add_argument("--include-rules", help="Comma-separated list of specific rule names to include")
+    rule_filter_group.add_argument("--exclude-rules", help="Comma-separated list of specific rule names to exclude")
+
+    # Output format options
+    parser.add_argument(
+        "--output-format", choices=["text", "json", "sarif"], default="text", help="Output format (default: text)"
+    )
+
+    parser.add_argument("--output-file", help="File to write output to (default: output to console)")
+
     parser.add_argument("-v", "--version", action="store_true", help="Show version information and exit")
 
     parser.add_argument("files", nargs="*", help="PowerShell files to analyze")
@@ -243,11 +271,51 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
 
     # Run the analysis or formatting
     action = "Formatting" if args.format else "Analyzing"
-    print_status(f"{action} {len(ps_files)} PowerShell file(s)...", "blue")
 
-    result = run_script_analyzer(powershell_cmd, ps_files, format_files=args.format, severity=args.severity)
+    # Update action description based on rule filter
+    filter_description = ""
+    if not args.format:
+        if args.security_only:
+            filter_description = " (security rules only)"
+        elif args.style_only:
+            filter_description = " (style rules only)"
+        elif args.performance_only:
+            filter_description = " (performance rules only)"
+        elif args.best_practices_only:
+            filter_description = " (best practices only)"
+        elif args.dsc_only:
+            filter_description = " (DSC rules only)"
+        elif args.compatibility_only:
+            filter_description = " (compatibility rules only)"
+        elif args.include_rules:
+            filter_description = " (specific included rules)"
+        elif args.exclude_rules:
+            filter_description = " (with specific rules excluded)"
 
-    if result == 0 and not args.format:
+    print_status(f"{action}{filter_description} {len(ps_files)} PowerShell file(s)...", "blue")
+
+    # Parse include/exclude rules if specified
+    include_rules = args.include_rules.split(",") if args.include_rules else None
+    exclude_rules = args.exclude_rules.split(",") if args.exclude_rules else None
+
+    result = run_script_analyzer(
+        powershell_cmd,
+        ps_files,
+        format_files=args.format,
+        severity=args.severity,
+        security_only=args.security_only,
+        style_only=args.style_only,
+        performance_only=args.performance_only,
+        best_practices_only=args.best_practices_only,
+        dsc_only=args.dsc_only,
+        compatibility_only=args.compatibility_only,
+        include_rules=include_rules,
+        exclude_rules=exclude_rules,
+        output_format=args.output_format,
+        output_file=args.output_file,
+    )
+
+    if result == 0 and not args.format and args.output_format == "text":
         print_success("No issues found")
 
     return result

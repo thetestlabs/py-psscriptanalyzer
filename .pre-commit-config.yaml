@@ -64,7 +64,7 @@ repos:
         additional_dependencies: ["bandit[toml]"]
 
   - repo: https://github.com/astral-sh/uv-pre-commit
-    rev: fb5a27193ad89e24d37319409d242dfd43a235dd
+    rev: ca7a67be7408bdf7e164f36955a8247de0ab8219
     hooks:
       - id: uv-lock
 

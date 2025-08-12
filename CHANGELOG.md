@@ -1,5 +1,26 @@
 # Change Log
 
+## [0.3.0] - 2025-08-12
+
+### Added
+
+- **Rule Category Filtering**: Added specialized filtering options by rule category
+  - `--style-only`: Filter for style/formatting rules
+  - `--performance-only`: Filter for performance rules
+  - `--security-only`: Filter for security rules
+  - `--best-practices-only`: Filter for best practice rules
+  - `--dsc-only`: Filter for DSC rules
+  - `--compatibility-only`: Filter for compatibility rules
+- **Rule Include/Exclude Options**: Added options to include or exclude specific rules
+  - `--include-rules`: Specify rules to include
+  - `--exclude-rules`: Specify rules to exclude
+- **Multiple Output Formats**: Added support for different output formats
+  - `--output-format`: Specify output format (text, json, sarif)
+  - `--output-file`: Write output to a file instead of console
+- **SARIF Output Support**: Added SARIF output format for integration with GitHub Code Scanning
+  - Enhanced SARIF output with rule category tagging
+- **Rule Categorization**: Added rule category property to results for better organization
+
 ## [0.2.0] - 2025-08-11
 
 ### Added

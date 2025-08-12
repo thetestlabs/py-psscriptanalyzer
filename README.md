@@ -121,7 +121,7 @@ Add this to your `.pre-commit-config.yaml`:
 ```yaml
 repos:
   - repo: https://github.com/thetestlabs/py-psscriptanalyzer
-    rev: v0.2.0 # Use the latest version
+    rev: v0.3.0 # Use the latest version
     hooks:
       - id: py-psscriptanalyzer # Lint your PowerShell
       - id: py-psscriptanalyzer-format # Format your PowerShell

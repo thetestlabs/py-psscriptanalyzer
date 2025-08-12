@@ -1,12 +1,14 @@
 """Core PSScriptAnalyzer functionality."""
 
 import argparse
+import json
+import os
 import subprocess
 import sys
 from collections.abc import Sequence
-from typing import Optional
+from typing import Any, Optional
 
-from .constants import ANALYSIS_TIMEOUT, POWERSHELL_FILE_EXTENSIONS, SEVERITY_LEVELS
+from .constants import ANALYSIS_TIMEOUT, POWERSHELL_FILE_EXTENSIONS, SARIF_VERSION, SEVERITY_LEVELS
 from .powershell import check_psscriptanalyzer_installed, find_powershell, install_psscriptanalyzer
 from .scripts import build_powershell_file_array, generate_analysis_script, generate_format_script
 
@@ -16,6 +18,16 @@ def run_script_analyzer(
     files: list[str],
     format_files: bool = False,
     severity: str = "Warning",
+    security_only: bool = False,
+    style_only: bool = False,
+    performance_only: bool = False,
+    best_practices_only: bool = False,
+    dsc_only: bool = False,
+    compatibility_only: bool = False,
+    include_rules: Optional[list[str]] = None,
+    exclude_rules: Optional[list[str]] = None,
+    output_format: str = "text",
+    output_file: Optional[str] = None,
 ) -> int:
     """Run PSScriptAnalyzer on the given files."""
     if not files:
@@ -26,19 +38,173 @@ def run_script_analyzer(
     if format_files:
         ps_command = generate_format_script(files_param)
     else:
-        ps_command = generate_analysis_script(files_param, severity)
+        ps_command = generate_analysis_script(
+            files_param,
+            severity=severity,
+            security_only=security_only,
+            style_only=style_only,
+            performance_only=performance_only,
+            best_practices_only=best_practices_only,
+            dsc_only=dsc_only,
+            compatibility_only=compatibility_only,
+            include_rules=include_rules,
+            exclude_rules=exclude_rules,
+            json_output=(output_format == "json"),
+        )
 
     try:
-        result = subprocess.run(
-            [powershell_cmd, "-Command", ps_command],
-            text=True,
-            timeout=ANALYSIS_TIMEOUT,
-            check=False,
-        )
-        return result.returncode
+        if output_format == "text" or format_files:
+            # Standard console output mode
+            result = subprocess.run(
+                [powershell_cmd, "-Command", ps_command],
+                text=True,
+                timeout=ANALYSIS_TIMEOUT,
+                check=False,
+                capture_output=(output_format == "json"),
+            )
+
+            # Handle json output that will be transformed to sarif
+            if output_format == "json" and not format_files:
+                # Parse PowerShell JSON output or empty list if no results
+                json_data = [] if result.returncode == 0 and not result.stdout.strip() else json.loads(result.stdout)
+
+                # If SARIF format is requested, convert JSON to SARIF
+                if output_format == "sarif":
+                    sarif_data = convert_to_sarif(json_data, files)
+                    output_json = json.dumps(sarif_data, indent=2)
+                else:
+                    output_json = json.dumps(json_data, indent=2)
+
+                if output_file:
+                    with open(output_file, "w") as f:
+                        f.write(output_json)
+                else:
+                    print(output_json)
+
+            return result.returncode
+
+        if output_format == "sarif":
+            # First get JSON output from PowerShell
+            result = subprocess.run(
+                [powershell_cmd, "-Command", ps_command],
+                text=True,
+                timeout=ANALYSIS_TIMEOUT,
+                check=False,
+                capture_output=True,
+            )
+
+            # Parse PowerShell JSON output or empty list if no results
+            json_data = [] if result.returncode == 0 and not result.stdout.strip() else json.loads(result.stdout)
+
+            # Convert to SARIF
+            sarif_data = convert_to_sarif(json_data, files)
+            sarif_json = json.dumps(sarif_data, indent=2)
+
+            if output_file:
+                with open(output_file, "w") as f:
+                    f.write(sarif_json)
+            else:
+                print(sarif_json)
+
+            return result.returncode
+
     except subprocess.TimeoutExpired:
         print("Timeout while running PSScriptAnalyzer")
         return 1
+    except json.JSONDecodeError:
+        print("Error parsing JSON output from PSScriptAnalyzer")
+        return 1
+    except Exception as e:
+        print(f"Error processing results: {e}")
+        return 1
+
+    return 0
+
+
+def convert_to_sarif(ps_results: list[dict[str, Any]], files: list[str]) -> dict[str, Any]:
+    """Convert PSScriptAnalyzer results to SARIF format."""
+    # Map severity levels to SARIF levels
+    severity_map = {"Error": "error", "Warning": "warning", "Information": "note"}
+
+    # Create base SARIF structure
+    sarif = {
+        "$schema": f"https://schemastore.azurewebsites.net/schemas/json/sarif-{SARIF_VERSION}.json",
+        "version": SARIF_VERSION,
+        "runs": [
+            {
+                "tool": {
+                    "driver": {
+                        "name": "PSScriptAnalyzer",
+                        "semanticVersion": "1.x",
+                        "informationUri": "https://github.com/PowerShell/PSScriptAnalyzer",
+                        "rules": [],
+                    }
+                },
+                "results": [],
+                "artifacts": [{"location": {"uri": f"file://{os.path.abspath(f)}"}} for f in files],
+            }
+        ],
+    }
+
+    # Track rules we've already added
+    rules_added = set()
+
+    # Process results
+    for result in ps_results:
+        rule_id = result.get("RuleName", "")
+        severity = result.get("Severity", "Warning")
+        message = result.get("Message", "")
+        file_path = result.get("ScriptPath", "")
+        line = result.get("Line", 1)
+        column = result.get("Column", 1)
+
+        # Add rule metadata if not already added
+        if rule_id and rule_id not in rules_added:
+            # Determine tags based on rule category
+            tags = []
+            if result.get("IsSecurityRule", False):
+                tags.append("security")
+
+            # Add other category tags
+            rule_category = result.get("RuleCategory", "")
+            if rule_category and rule_category.lower() not in [t.lower() for t in tags]:
+                tags.append(rule_category.lower())
+
+            # Type annotation for mypy
+            sarif_runs = sarif["runs"]
+            if isinstance(sarif_runs, list) and len(sarif_runs) > 0:
+                driver = sarif_runs[0]["tool"]["driver"]
+                if isinstance(driver, dict) and "rules" in driver:
+                    driver["rules"].append(
+                        {
+                            "id": rule_id,
+                            "shortDescription": {"text": rule_id},
+                            "properties": {"tags": tags, "category": result.get("RuleCategory", "")},
+                        }
+                    )
+            rules_added.add(rule_id)
+
+        # Add result
+        sarif_result = {
+            "ruleId": rule_id,
+            "level": severity_map.get(severity, "warning"),
+            "message": {"text": message},
+            "locations": [
+                {
+                    "physicalLocation": {
+                        "artifactLocation": {"uri": f"file://{os.path.abspath(file_path)}"},
+                        "region": {"startLine": line, "startColumn": column},
+                    }
+                }
+            ],
+        }
+
+        # Type annotation for mypy
+        sarif_runs = sarif["runs"]
+        if isinstance(sarif_runs, list) and len(sarif_runs) > 0 and "results" in sarif_runs[0]:
+            sarif_runs[0]["results"].append(sarif_result)
+
+    return sarif
 
 
 def main(argv: Optional[Sequence[str]] = None) -> int:

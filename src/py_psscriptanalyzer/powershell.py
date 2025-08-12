@@ -3,12 +3,7 @@
 import subprocess
 from typing import Optional
 
-from .constants import (
-    INSTALL_TIMEOUT,
-    MODULE_CHECK_TIMEOUT,
-    POWERSHELL_CHECK_TIMEOUT,
-    POWERSHELL_EXECUTABLES,
-)
+from .constants import INSTALL_TIMEOUT, MODULE_CHECK_TIMEOUT, POWERSHELL_CHECK_TIMEOUT, POWERSHELL_EXECUTABLES
 
 
 def find_powershell() -> Optional[str]:
