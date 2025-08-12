@@ -3,6 +3,7 @@
 import json
 import os
 import subprocess
+from typing import Any
 from unittest.mock import MagicMock, mock_open, patch
 
 from py_psscriptanalyzer.constants import SARIF_VERSION
@@ -13,9 +14,9 @@ from py_psscriptanalyzer.core import convert_to_sarif, main, run_script_analyzer
 #
 
 
-def test_convert_to_sarif_empty():
+def test_convert_to_sarif_empty() -> None:
     """Test converting empty PSScriptAnalyzer results to SARIF format."""
-    ps_results = []
+    ps_results: list[dict[str, Any]] = []
     files = ["test.ps1"]
     sarif_data = convert_to_sarif(ps_results, files)
 
@@ -27,7 +28,7 @@ def test_convert_to_sarif_empty():
     assert len(sarif_data["runs"][0]["artifacts"]) == 1
 
 
-def test_convert_to_sarif_with_results():
+def test_convert_to_sarif_with_results() -> None:
     """Test converting PSScriptAnalyzer results with findings to SARIF format."""
     ps_results = [
         {
@@ -80,7 +81,7 @@ def test_convert_to_sarif_with_results():
     assert len(non_security_rule["properties"]["tags"]) == 0
 
 
-def test_convert_to_sarif_with_different_severities():
+def test_convert_to_sarif_with_different_severities() -> None:
     """Test convert_to_sarif with different severities."""
     ps_results = [
         {
@@ -140,7 +141,7 @@ def test_convert_to_sarif_with_different_severities():
 #
 
 
-def test_run_script_analyzer_empty_files():
+def test_run_script_analyzer_empty_files() -> None:
     """Test run_script_analyzer with empty file list."""
     result = run_script_analyzer("pwsh", [], format_files=False)
     assert result == 0
@@ -152,9 +153,7 @@ def test_run_script_analyzer_empty_files():
 @patch("json.loads")
 @patch("py_psscriptanalyzer.core.convert_to_sarif")
 @patch("builtins.open", new_callable=mock_open)
-def test_run_script_analyzer_sarif_output_to_file(
-    mock_file, mock_convert, mock_loads, mock_run, mock_generate, mock_build_array
-):
+def test_run_script_analyzer_sarif_output_to_file() -> None:
     """Test run_script_analyzer with SARIF output to file."""
     # Mock subprocess
     process_mock = MagicMock()
@@ -189,9 +188,7 @@ def test_run_script_analyzer_sarif_output_to_file(
 @patch("json.loads")
 @patch("py_psscriptanalyzer.core.convert_to_sarif")
 @patch("builtins.print")
-def test_run_script_analyzer_sarif_output_to_console(
-    mock_print, mock_convert, mock_loads, mock_run, mock_generate, mock_build_array
-):
+def test_run_script_analyzer_sarif_output_to_console() -> None:
     """Test run_script_analyzer with SARIF output to console."""
     # Mock subprocess
     process_mock = MagicMock()
@@ -220,7 +217,7 @@ def test_run_script_analyzer_sarif_output_to_console(
 @patch("py_psscriptanalyzer.core.build_powershell_file_array", return_value="$files")
 @patch("py_psscriptanalyzer.core.generate_analysis_script", return_value="mock script")
 @patch("subprocess.run", side_effect=subprocess.TimeoutExpired("pwsh", 300))
-def test_run_script_analyzer_timeout(mock_run, mock_generate, mock_build_array):
+def test_run_script_analyzer_timeout() -> None:
     """Test run_script_analyzer with timeout exception."""
     with patch("builtins.print") as mock_print:
         result = run_script_analyzer("pwsh", ["test.ps1"])
@@ -232,7 +229,7 @@ def test_run_script_analyzer_timeout(mock_run, mock_generate, mock_build_array):
 @patch("py_psscriptanalyzer.core.build_powershell_file_array", return_value="$files")
 @patch("py_psscriptanalyzer.core.generate_analysis_script", return_value="mock script")
 @patch("subprocess.run", side_effect=Exception("Test error"))
-def test_run_script_analyzer_general_exception(mock_run, mock_generate, mock_build_array):
+def test_run_script_analyzer_general_exception() -> None:
     """Test run_script_analyzer with general exception."""
     with patch("builtins.print") as mock_print:
         result = run_script_analyzer("pwsh", ["test.ps1"])
@@ -244,7 +241,7 @@ def test_run_script_analyzer_general_exception(mock_run, mock_generate, mock_bui
 @patch("subprocess.run")
 @patch("py_psscriptanalyzer.core.generate_analysis_script")
 @patch("py_psscriptanalyzer.core.convert_to_sarif")
-def test_run_script_analyzer_sarif_output(mock_convert, mock_generate, mock_run):
+def test_run_script_analyzer_sarif_output() -> None:
     """Test run_script_analyzer function with SARIF output."""
     # Mock the script generation
     mock_generate.return_value = "# PowerShell script mock"
@@ -284,7 +281,7 @@ def test_run_script_analyzer_sarif_output(mock_convert, mock_generate, mock_run)
             os.remove(tmp_file)
 
 
-def test_file_output_handling():
+def test_file_output_handling() -> None:
     """Test handling output to files."""
     # Test writing to JSON file
     m_json = mock_open()
@@ -314,7 +311,7 @@ def test_file_output_handling():
         m_sarif().write.assert_called_once_with(sarif_json)
 
 
-def test_exception_handling():
+def test_exception_handling() -> None:
     """Test the exception handling code paths."""
     # Test timeout exception
     with patch("builtins.print") as mock_print:
@@ -355,7 +352,7 @@ def test_exception_handling():
 @patch("py_psscriptanalyzer.core.find_powershell", return_value="pwsh")
 @patch("py_psscriptanalyzer.core.check_psscriptanalyzer_installed", return_value=True)
 @patch("py_psscriptanalyzer.core.run_script_analyzer", return_value=0)
-def test_main_with_ps_files(mock_run, mock_check, mock_find):
+def test_main_with_ps_files() -> None:
     """Test main function with PowerShell files."""
     with patch("sys.argv", ["py-psscriptanalyzer", "test.ps1"]), patch("builtins.print") as mock_print:
         result = main()
@@ -367,7 +364,7 @@ def test_main_with_ps_files(mock_run, mock_check, mock_find):
 
 
 @patch("py_psscriptanalyzer.core.find_powershell", return_value=None)
-def test_main_no_powershell(mock_find):
+def test_main_no_powershell() -> None:
     """Test main function when PowerShell is not found."""
     with (
         patch("sys.argv", ["py-psscriptanalyzer", "test.ps1"]),
@@ -386,7 +383,7 @@ def test_main_no_powershell(mock_find):
 @patch("py_psscriptanalyzer.core.check_psscriptanalyzer_installed", return_value=False)
 @patch("py_psscriptanalyzer.core.install_psscriptanalyzer", return_value=True)
 @patch("py_psscriptanalyzer.core.run_script_analyzer", return_value=0)
-def test_main_install_psscriptanalyzer(mock_run, mock_install, mock_check, mock_find):
+def test_main_install_psscriptanalyzer() -> None:
     """Test main function when PSScriptAnalyzer needs to be installed."""
     with patch("sys.argv", ["py-psscriptanalyzer", "test.ps1"]), patch("builtins.print") as mock_print:
         result = main()
@@ -401,7 +398,7 @@ def test_main_install_psscriptanalyzer(mock_run, mock_install, mock_check, mock_
 @patch("py_psscriptanalyzer.core.find_powershell", return_value="pwsh")
 @patch("py_psscriptanalyzer.core.check_psscriptanalyzer_installed", return_value=False)
 @patch("py_psscriptanalyzer.core.install_psscriptanalyzer", return_value=False)
-def test_main_psscriptanalyzer_install_failed(mock_install, mock_check, mock_find):
+def test_main_psscriptanalyzer_install_failed() -> None:
     """Test main function when PSScriptAnalyzer installation fails."""
     with (
         patch("sys.argv", ["py-psscriptanalyzer", "test.ps1"]),
@@ -417,7 +414,7 @@ def test_main_psscriptanalyzer_install_failed(mock_install, mock_check, mock_fin
         assert any("Failed to install PSScriptAnalyzer" in str(call) for call in mock_print.call_args_list)
 
 
-def test_main_no_ps_files():
+def test_main_no_ps_files() -> None:
     """Test main function with no PowerShell files."""
     with patch("sys.argv", ["py-psscriptanalyzer", "test.txt"]):
         result = main()
@@ -427,7 +424,7 @@ def test_main_no_ps_files():
 @patch("py_psscriptanalyzer.core.find_powershell", return_value="pwsh")
 @patch("py_psscriptanalyzer.core.check_psscriptanalyzer_installed", return_value=True)
 @patch("py_psscriptanalyzer.core.run_script_analyzer", return_value=0)
-def test_main_with_format_flag(mock_run, mock_check, mock_find):
+def test_main_with_format_flag() -> None:
     """Test main function with format flag."""
     with patch("sys.argv", ["py-psscriptanalyzer", "--format", "test.ps1"]), patch("builtins.print") as mock_print:
         result = main()

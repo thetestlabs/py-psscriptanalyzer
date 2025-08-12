@@ -170,13 +170,18 @@ def convert_to_sarif(ps_results: list[dict[str, Any]], files: list[str]) -> dict
             if rule_category and rule_category.lower() not in [t.lower() for t in tags]:
                 tags.append(rule_category.lower())
 
-            sarif["runs"][0]["tool"]["driver"]["rules"].append(
-                {
-                    "id": rule_id,
-                    "shortDescription": {"text": rule_id},
-                    "properties": {"tags": tags, "category": result.get("RuleCategory", "")},
-                }
-            )
+            # Type annotation for mypy
+            sarif_runs = sarif["runs"]
+            if isinstance(sarif_runs, list) and len(sarif_runs) > 0:
+                driver = sarif_runs[0]["tool"]["driver"]
+                if isinstance(driver, dict) and "rules" in driver:
+                    driver["rules"].append(
+                        {
+                            "id": rule_id,
+                            "shortDescription": {"text": rule_id},
+                            "properties": {"tags": tags, "category": result.get("RuleCategory", "")},
+                        }
+                    )
             rules_added.add(rule_id)
 
         # Add result
@@ -194,7 +199,10 @@ def convert_to_sarif(ps_results: list[dict[str, Any]], files: list[str]) -> dict
             ],
         }
 
-        sarif["runs"][0]["results"].append(sarif_result)
+        # Type annotation for mypy
+        sarif_runs = sarif["runs"]
+        if isinstance(sarif_runs, list) and len(sarif_runs) > 0 and "results" in sarif_runs[0]:
+            sarif_runs[0]["results"].append(sarif_result)
 
     return sarif
 

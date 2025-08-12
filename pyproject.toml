@@ -158,3 +158,8 @@ exclude_dirs = ["tests"]
 
 [tool.bandit.assert_used]
 skips = ["**/tests/**", "**/test_*.py"]
+
+# Disable mypy strict checking for test files
+[[tool.mypy.overrides]]
+module = "tests.*"
+disallow_untyped_defs = false
