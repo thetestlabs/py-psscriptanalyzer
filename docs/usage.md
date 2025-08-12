@@ -36,6 +36,22 @@ Available options:
 - `--version, -v`: Show version information
 - `--help, -h`: Show help message
 
+Rule category filters:
+- `--security-only`: Only show security-related findings
+- `--style-only`: Only show style/formatting-related findings
+- `--performance-only`: Only show performance-related findings
+- `--best-practices-only`: Only show best practices-related findings
+- `--dsc-only`: Only show DSC (Desired State Configuration) related findings
+- `--compatibility-only`: Only show compatibility-related findings
+
+Rule selection:
+- `--include-rules`: Comma-separated list of specific rule names to include
+- `--exclude-rules`: Comma-separated list of specific rule names to exclude
+
+Output format options:
+- `--output-format`: Specify output format (text, json, sarif)
+- `--output-file`: Write output to a file instead of console
+
 ### Severity Levels
 
 py-psscriptanalyzer uses a **hierarchical severity system**:
@@ -91,6 +107,63 @@ py-psscriptanalyzer MyScript.ps1  # Uses Error level
 # Override environment variable
 export SEVERITY_LEVEL=Error
 py-psscriptanalyzer --severity Information MyScript.ps1  # Uses Information level
+```
+
+#### Rule Category Filtering
+
+Filter analysis results by rule category:
+
+```bash
+# Show only security-related issues
+py-psscriptanalyzer --security-only MyScript.ps1
+
+# Show only style/formatting issues
+py-psscriptanalyzer --style-only MyScript.ps1
+
+# Show only performance issues
+py-psscriptanalyzer --performance-only MyScript.ps1
+
+# Show only best practices issues
+py-psscriptanalyzer --best-practices-only MyScript.ps1
+
+# Show only DSC issues
+py-psscriptanalyzer --dsc-only MyScript.ps1
+
+# Show only compatibility issues
+py-psscriptanalyzer --compatibility-only MyScript.ps1
+```
+
+#### Include/Exclude Specific Rules
+
+Filter by specific rule names:
+
+```bash
+# Only include specific rules
+py-psscriptanalyzer --include-rules PSAvoidUsingPlainTextForPassword,PSAvoidUsingConvertToSecureStringWithPlainText MyScript.ps1
+
+# Exclude specific rules
+py-psscriptanalyzer --exclude-rules PSAvoidUsingWriteHost,PSAvoidUsingPositionalParameters MyScript.ps1
+
+# Combine with severity and other filters
+py-psscriptanalyzer --severity Error --include-rules PSAvoidUsingPlainTextForPassword MyScript.ps1
+```
+
+#### Output Formats
+
+Specify the output format and optionally write to a file:
+
+```bash
+# Output in JSON format
+py-psscriptanalyzer --output-format json script.ps1
+
+# Output in SARIF format for GitHub Code Scanning
+py-psscriptanalyzer --output-format sarif script.ps1
+
+# Write output to a file
+py-psscriptanalyzer --output-format json --output-file results.json script.ps1
+
+# Combine with filters
+py-psscriptanalyzer --security-only --output-format sarif --output-file security-issues.sarif script.ps1
 ```
 
 #### Recursive File Search
@@ -171,7 +244,7 @@ You can customize the hooks in your `.pre-commit-config.yaml`:
 ```yaml
   repos:
     - repo: https://github.com/thetestlabs/py-psscriptanalyzer
-      rev: v0.2.0
+      rev: v0.3.0
       hooks:
       # Analyzer with custom severity
       - id: py-psscriptanalyzer
@@ -224,6 +297,8 @@ $ py-psscriptanalyzer good-script.ps1
 
 ### GitHub Actions
 
+#### Basic Analysis
+
 ```yaml
 name: PowerShell Quality
 
@@ -248,7 +323,53 @@ jobs:
         run: pip install py-psscriptanalyzer
 
       - name: Analyze PowerShell files
-        run: py-psscriptanalyzer **/*.ps1
+        run: py-psscriptanalyzer --recursive
+```
+
+#### With SARIF for GitHub Code Scanning
+
+```yaml
+name: PowerShell Security Scan
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    - cron: '0 0 * * 0'  # Weekly scan on Sundays
+
+jobs:
+  security-scan:
+    runs-on: ubuntu-latest
+    permissions:
+      # Required for GitHub SARIF upload
+      security-events: write
+      
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          
+      - name: Install PowerShell
+        run: |
+          sudo snap install powershell --classic
+          
+      - name: Install py-psscriptanalyzer
+        run: pip install py-psscriptanalyzer
+        
+      - name: Run security scan
+        run: |
+          py-psscriptanalyzer --security-only --recursive --output-format sarif --output-file powershell-security.sarif
+          
+      - name: Upload SARIF results
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: powershell-security.sarif
+          category: powershell-security
 ```
 
 ### Azure Pipelines
@@ -313,6 +434,31 @@ steps:
 | `--version` | `-v` | Show version information |
 | `--help` | `-h` | Show help message |
 
+### Rule Category Filters
+
+| Option | Description |
+|--------|-------------|
+| `--security-only` | Only show security-related findings |
+| `--style-only` | Only show style/formatting-related findings |
+| `--performance-only` | Only show performance-related findings |
+| `--best-practices-only` | Only show best practices-related findings |
+| `--dsc-only` | Only show DSC-related findings |
+| `--compatibility-only` | Only show compatibility-related findings |
+
+### Rule Selection Options
+
+| Option | Description |
+|--------|-------------|
+| `--include-rules` | Comma-separated list of specific rule names to include |
+| `--exclude-rules` | Comma-separated list of specific rule names to exclude |
+
+### Output Format Options
+
+| Option | Description |
+|--------|-------------|
+| `--output-format` | Specify output format: text (default), json, or sarif |
+| `--output-file` | Write output to a file instead of console |
+
 ### Severity Levels
 
 | Level | Shows | Use Case |
@@ -341,6 +487,15 @@ py-psscriptanalyzer --recursive --format
 
 # Use environment variable
 export SEVERITY_LEVEL=Information && py-psscriptanalyzer --recursive
+
+# Filter security issues and generate SARIF output
+py-psscriptanalyzer --security-only --output-format sarif --output-file security-scan.sarif
+
+# Include only specific rules
+py-psscriptanalyzer --include-rules PSAvoidUsingPlainTextForPassword,PSAvoidUsingConvertToSecureStringWithPlainText
+
+# Exclude specific rules
+py-psscriptanalyzer --exclude-rules PSAvoidUsingWriteHost
 ```
 
 ### Team Best Practices

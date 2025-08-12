@@ -9,7 +9,7 @@ Add py-psscriptanalyzer to your `.pre-commit-config.yaml`:
 ```yaml
 repos:
   - repo: https://github.com/thetestlabs/py-psscriptanalyzer
-    rev: v0.2.0  # Use the latest version
+    rev: v0.3.0  # Use the latest version
     hooks:
       - id: py-psscriptanalyzer
       - id: py-psscriptanalyzer-format
@@ -22,7 +22,7 @@ py-psscriptanalyzer uses a **hierarchical severity system** where each level inc
 ```yaml
 repos:
   - repo: https://github.com/thetestlabs/py-psscriptanalyzer
-    rev: v0.2.0
+    rev: v0.3.0
     hooks:
       - id: py-psscriptanalyzer
         args: ["--severity", "Error"]  # Only show critical errors
@@ -47,7 +47,7 @@ env:
 # Or in your pre-commit hook
 repos:
   - repo: https://github.com/thetestlabs/py-psscriptanalyzer
-    rev: v0.2.0
+    rev: v0.3.0
     hooks:
       - id: py-psscriptanalyzer
         # Uses SEVERITY_LEVEL environment variable if set, otherwise defaults to Warning
@@ -60,6 +60,64 @@ export SEVERITY_LEVEL=Error
 py-psscriptanalyzer --severity Warning script.ps1  # Uses Warning, not Error
 ```
 
+### Rule Category Filtering
+
+Filter analysis by rule category:
+
+```yaml
+repos:
+  - repo: https://github.com/thetestlabs/py-psscriptanalyzer
+    rev: v0.3.0
+    hooks:
+      - id: py-psscriptanalyzer
+        args: ["--security-only"]  # Only show security-related issues
+        
+      # Or use other category filters:
+      # args: ["--style-only"]
+      # args: ["--performance-only"]
+      # args: ["--best-practices-only"]
+      # args: ["--dsc-only"]
+      # args: ["--compatibility-only"]
+```
+
+### Include/Exclude Rules
+
+Specify which rules to include or exclude:
+
+```yaml
+repos:
+  - repo: https://github.com/thetestlabs/py-psscriptanalyzer
+    rev: v0.3.0
+    hooks:
+      # Include only specific rules
+      - id: py-psscriptanalyzer
+        name: Security Rules Check
+        args: ["--include-rules", "PSAvoidUsingPlainTextForPassword,PSAvoidUsingConvertToSecureStringWithPlainText"]
+        
+      # Exclude specific rules
+      - id: py-psscriptanalyzer
+        name: General Analysis (No Style)
+        args: ["--exclude-rules", "PSAvoidSemicolonsAsLineTerminators,PSUseShouldProcessForStateChangingFunctions"]
+```
+
+### Output Format Options
+
+Configure different output formats:
+
+```yaml
+repos:
+  - repo: https://github.com/thetestlabs/py-psscriptanalyzer
+    rev: v0.3.0
+    hooks:
+      # Generate JSON output
+      - id: py-psscriptanalyzer
+        args: ["--output-format", "json"]
+        
+      # Generate SARIF output for GitHub Code Scanning
+      - id: py-psscriptanalyzer
+        args: ["--output-format", "sarif", "--output-file", "psscriptanalyzer-results.sarif"]
+```
+
 ### Recursive File Processing
 
 Use the `--recursive` flag to automatically find and process all PowerShell files:
@@ -67,7 +125,7 @@ Use the `--recursive` flag to automatically find and process all PowerShell file
 ```yaml
 repos:
   - repo: https://github.com/thetestlabs/py-psscriptanalyzer
-    rev: v0.2.0
+    rev: v0.3.0
     hooks:
       - id: py-psscriptanalyzer
         args: ["--recursive", "--severity", "Error"]
@@ -119,7 +177,7 @@ By default, the hooks run on all PowerShell files. You can customize this:
 ```yaml
 repos:
   - repo: https://github.com/thetestlabs/py-psscriptanalyzer
-    rev: v0.2.0
+    rev: v0.3.0
     hooks:
       - id: py-psscriptanalyzer
         files: \\.ps1$  # Only .ps1 files
@@ -135,7 +193,7 @@ Exclude specific files or directories:
 ```yaml
 repos:
   - repo: https://github.com/thetestlabs/py-psscriptanalyzer
-    rev: v0.2.0
+    rev: v0.3.0
     hooks:
       - id: py-psscriptanalyzer
         exclude: ^(tests/|examples/).*\\.ps1$  # Skip test and example files
@@ -148,7 +206,7 @@ repos:
 ```yaml
 repos:
   - repo: https://github.com/thetestlabs/py-psscriptanalyzer
-    rev: v0.2.0
+    rev: v0.3.0
     hooks:
       # Strict analysis for main code
       - id: py-psscriptanalyzer
@@ -165,6 +223,29 @@ repos:
       # Format all PowerShell files
       - id: py-psscriptanalyzer-format
         name: PowerShell Formatting
+```
+
+#### Advanced Configuration with New Features
+
+```yaml
+repos:
+  - repo: https://github.com/thetestlabs/py-psscriptanalyzer
+    rev: v0.3.0
+    hooks:
+      # Security-focused analysis
+      - id: py-psscriptanalyzer
+        name: PowerShell Security Check
+        args: ["--security-only", "--severity", "Error"]
+        files: ^(src|modules)/.*\.ps1$
+        
+      # Style analysis (excluding certain rules)
+      - id: py-psscriptanalyzer
+        name: PowerShell Style Check
+        args: ["--style-only", "--exclude-rules", "PSAvoidSemicolonsAsLineTerminators"]
+        files: ^(src|modules)/.*\.ps1$
+        
+      # Format all PowerShell files
+      - id: py-psscriptanalyzer-format
 ```
 
 #### Integration with Other Hooks
@@ -184,7 +265,7 @@ repos:
 
   # PowerShell hooks
   - repo: https://github.com/thetestlabs/py-psscriptanalyzer
-    rev: v0.2.0
+    rev: v0.3.0
     hooks:
       - id: py-psscriptanalyzer
       - id: py-psscriptanalyzer-format
