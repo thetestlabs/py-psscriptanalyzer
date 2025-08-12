@@ -65,12 +65,8 @@ def run_script_analyzer(
 
             # Handle json output that will be transformed to sarif
             if output_format == "json" and not format_files:
-                if result.returncode == 0 and not result.stdout.strip():
-                    # No results found
-                    json_data = []
-                else:
-                    # Parse PowerShell JSON output
-                    json_data = json.loads(result.stdout)
+                # Parse PowerShell JSON output or empty list if no results
+                json_data = [] if result.returncode == 0 and not result.stdout.strip() else json.loads(result.stdout)
 
                 # If SARIF format is requested, convert JSON to SARIF
                 if output_format == "sarif":
@@ -97,10 +93,8 @@ def run_script_analyzer(
                 capture_output=True,
             )
 
-            if result.returncode == 0 and not result.stdout.strip():
-                json_data = []
-            else:
-                json_data = json.loads(result.stdout)
+            # Parse PowerShell JSON output or empty list if no results
+            json_data = [] if result.returncode == 0 and not result.stdout.strip() else json.loads(result.stdout)
 
             # Convert to SARIF
             sarif_data = convert_to_sarif(json_data, files)
@@ -123,6 +117,8 @@ def run_script_analyzer(
     except Exception as e:
         print(f"Error processing results: {e}")
         return 1
+        
+    return 0
 
 
 def convert_to_sarif(ps_results: list[dict[str, Any]], files: list[str]) -> dict[str, Any]:
