@@ -1,5 +1,7 @@
 """PowerShell script generation utilities."""
 
+from typing import Optional
+
 
 def escape_powershell_path(path: str) -> str:
     """Escape a file path for use in PowerShell."""
@@ -117,23 +119,36 @@ def _generate_error_handling() -> str:
     """
 
 
-def generate_analysis_script(files_param: str, severity: str) -> str:
-    """
-    Generate PowerShell script for analyzing files.
+def generate_analysis_script(
+    files_param: str,
+    severity: str = "Warning",
+    security_only: bool = False,
+    style_only: bool = False,
+    performance_only: bool = False,
+    best_practices_only: bool = False,
+    dsc_only: bool = False,
+    compatibility_only: bool = False,
+    include_rules: Optional[list[str]] = None,
+    exclude_rules: Optional[list[str]] = None,
+    json_output: bool = False,
+) -> str:
+    """Generate PowerShell script to analyze PowerShell files."""
+    from .constants import (
+        BEST_PRACTICES_RULES,
+        COMPATIBILITY_RULES,
+        DSC_RULES,
+        PERFORMANCE_RULES,
+        SECURITY_RULES,
+        STYLE_RULES,
+    )
 
-    Implements hierarchical severity filtering:
-    - Information: shows all issues (Information, Warning, Error)
-    - Warning: shows Warning and Error issues
-    - Error: shows only Error issues
-    - All: shows all issues (same as Information)
-    """
-    # Map our severity levels to PowerShell filtering logic
-    if severity in ["All", "Information"]:
-        # Show all issues - don't use -Severity parameter to get everything
+    # Handle different severity levels
+    if severity == "All" or severity == "Information":
+        # Show all issues including Information severity
         severity_param = ""
         filter_logic = ""
     elif severity == "Warning":
-        # Show Warning and Error - don't use -Severity parameter and filter in PowerShell
+        # Show only Warning and Error severity issues (default)
         severity_param = ""
         filter_logic = """
                 # Filter to show only Warning and Error severity issues
@@ -149,7 +164,139 @@ def generate_analysis_script(files_param: str, severity: str) -> str:
                 # Filter to show only Warning and Error severity issues
                 $result = $result | Where-Object { $_.Severity -eq "Warning" -or $_.Severity -eq "Error" }"""
 
-    issue_reporting = _generate_issue_reporting_logic()
+    # Add rule category filtering if requested
+    rule_category_filter = ""
+
+    # Security rules filter
+    if security_only:
+        security_rules_list = ", ".join(f"'{rule}'" for rule in SECURITY_RULES)
+        rule_category_filter = f"""
+                # Filter to include only security-related rules
+                $categoryRules = @({security_rules_list})
+                $result = $result | Where-Object {{ $categoryRules -contains $_.RuleName }}
+                # Add category property to results for SARIF conversion
+                $result | ForEach-Object {{
+                    $_ | Add-Member -MemberType NoteProperty -Name "IsSecurityRule" -Value $true -Force
+                    $_ | Add-Member -MemberType NoteProperty -Name "RuleCategory" -Value "Security" -Force
+                }}
+        """
+
+    # Style rules filter
+    elif style_only:
+        style_rules_list = ", ".join(f"'{rule}'" for rule in STYLE_RULES)
+        rule_category_filter = f"""
+                # Filter to include only style-related rules
+                $categoryRules = @({style_rules_list})
+                $result = $result | Where-Object {{ $categoryRules -contains $_.RuleName }}
+                # Add category property to results for SARIF conversion
+                $result | ForEach-Object {{
+                    $_ | Add-Member -MemberType NoteProperty -Name "RuleCategory" -Value "Style" -Force
+                }}
+        """
+
+    # Performance rules filter
+    elif performance_only:
+        performance_rules_list = ", ".join(f"'{rule}'" for rule in PERFORMANCE_RULES)
+        rule_category_filter = f"""
+                # Filter to include only performance-related rules
+                $categoryRules = @({performance_rules_list})
+                $result = $result | Where-Object {{ $categoryRules -contains $_.RuleName }}
+                # Add category property to results for SARIF conversion
+                $result | ForEach-Object {{
+                    $_ | Add-Member -MemberType NoteProperty -Name "RuleCategory" -Value "Performance" -Force
+                }}
+        """
+
+    # Best practices rules filter
+    elif best_practices_only:
+        best_practices_rules_list = ", ".join(f"'{rule}'" for rule in BEST_PRACTICES_RULES)
+        rule_category_filter = f"""
+                # Filter to include only best practices rules
+                $categoryRules = @({best_practices_rules_list})
+                $result = $result | Where-Object {{ $categoryRules -contains $_.RuleName }}
+                # Add category property to results for SARIF conversion
+                $result | ForEach-Object {{
+                    $_ | Add-Member -MemberType NoteProperty -Name "RuleCategory" -Value "BestPractices" -Force
+                }}
+        """
+
+    # DSC rules filter
+    elif dsc_only:
+        dsc_rules_list = ", ".join(f"'{rule}'" for rule in DSC_RULES)
+        rule_category_filter = f"""
+                # Filter to include only DSC-related rules
+                $categoryRules = @({dsc_rules_list})
+                $result = $result | Where-Object {{ $categoryRules -contains $_.RuleName }}
+                # Add category property to results for SARIF conversion
+                $result | ForEach-Object {{
+                    $_ | Add-Member -MemberType NoteProperty -Name "RuleCategory" -Value "DSC" -Force
+                }}
+        """
+
+    # Compatibility rules filter
+    elif compatibility_only:
+        compatibility_rules_list = ", ".join(f"'{rule}'" for rule in COMPATIBILITY_RULES)
+        rule_category_filter = f"""
+                # Filter to include only compatibility-related rules
+                $categoryRules = @({compatibility_rules_list})
+                $result = $result | Where-Object {{ $categoryRules -contains $_.RuleName }}
+                # Add category property to results for SARIF conversion
+                $result | ForEach-Object {{
+                    $_ | Add-Member -MemberType NoteProperty -Name "RuleCategory" -Value "Compatibility" -Force
+                }}
+        """
+
+    # Include/exclude specific rules if specified
+    include_exclude_filter = ""
+    if include_rules:
+        include_rules_list = ", ".join(f"'{rule}'" for rule in include_rules)
+        include_exclude_filter = f"""
+                # Filter to include only specific rules
+                $includeRules = @({include_rules_list})
+                $result = $result | Where-Object {{ $includeRules -contains $_.RuleName }}
+        """
+
+    if exclude_rules:
+        exclude_rules_list = ", ".join(f"'{rule}'" for rule in exclude_rules)
+        include_exclude_filter = f"""
+                # Filter to exclude specific rules
+                $excludeRules = @({exclude_rules_list})
+                $result = $result | Where-Object {{ $excludeRules -notcontains $_.RuleName }}
+        """
+
+    # Combine all filters
+    if rule_category_filter:
+        filter_logic += rule_category_filter
+
+    if include_exclude_filter:
+        filter_logic += include_exclude_filter
+
+    # Choose output format
+    if json_output:
+        output_code = """
+            # Convert to JSON format
+            if ($issues.Count -gt 0) {
+                $issues | ConvertTo-Json -Depth 4
+                exit 1
+            } else {
+                Write-Host ""
+                exit 0
+            }"""
+    else:
+        issue_reporting = _generate_issue_reporting_logic()
+        output_code = f"""
+            if ($issues.Count -gt 0) {{
+                Write-Host ""
+
+                # Check if running in GitHub Actions
+                $isGitHubActions = $env:GITHUB_ACTIONS -eq "true"
+{issue_reporting}
+                exit 1
+            }} else {{
+                Write-Host "No issues found" -ForegroundColor Green
+                exit 0
+            }}"""
+
     error_handling = _generate_error_handling()
 
     return f"""
@@ -162,16 +309,6 @@ def generate_analysis_script(files_param: str, severity: str) -> str:
                     $issues += $result
                 }}
             }}
-            if ($issues.Count -gt 0) {{
-                Write-Host ""
-
-                # Check if running in GitHub Actions
-                $isGitHubActions = $env:GITHUB_ACTIONS -eq "true"
-{issue_reporting}
-                exit 1
-            }} else {{
-                Write-Host "No issues found" -ForegroundColor Green
-                exit 0
-            }}
+{output_code}
         }} {error_handling}
         """
