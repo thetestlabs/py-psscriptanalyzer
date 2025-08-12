@@ -50,7 +50,7 @@ def test_parser_with_include_exclude_rules():
 def test_main_with_style_filter(monkeypatch):
     """Test main function with style filter."""
     parser = cli.create_parser()
-    args = parser.parse_args(["--style-only", "script.ps1"])
+    parser.parse_args(["--style-only", "script.ps1"])
     monkeypatch.setattr(cli, "create_parser", lambda: parser)
 
     # Mock function calls
@@ -82,7 +82,7 @@ def test_main_with_style_filter(monkeypatch):
 def test_main_with_include_rules(monkeypatch):
     """Test main function with include rules."""
     parser = cli.create_parser()
-    args = parser.parse_args(["--include-rules", "Rule1,Rule2", "script.ps1"])
+    parser.parse_args(["--include-rules", "Rule1,Rule2", "script.ps1"])
     monkeypatch.setattr(cli, "create_parser", lambda: parser)
 
     # Mock function calls
@@ -114,7 +114,7 @@ def test_main_with_include_rules(monkeypatch):
 def test_main_with_multiple_category_filters(monkeypatch):
     """Test main function with multiple category filters (only first should be used)."""
     parser = cli.create_parser()
-    args = parser.parse_args(["--security-only", "--style-only", "--performance-only", "script.ps1"])
+    parser.parse_args(["--security-only", "--style-only", "--performance-only", "script.ps1"])
     monkeypatch.setattr(cli, "create_parser", lambda: parser)
 
     # Mock function calls

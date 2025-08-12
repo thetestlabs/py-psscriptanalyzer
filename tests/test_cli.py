@@ -101,7 +101,7 @@ def test_main_version(monkeypatch):
 
     monkeypatch.setattr(cli.console, "print", fake_print)
     parser = cli.create_parser()
-    args = parser.parse_args(["--version"])
+    parser.parse_args(["--version"])
     # Patch create_parser to return our parser
     monkeypatch.setattr(cli, "create_parser", lambda: parser)
     ret = cli.main(["--version"])
@@ -113,7 +113,7 @@ def test_main_recursive_no_files(monkeypatch):
     # Patch find_powershell_files_recursive to return []
     monkeypatch.setattr(cli, "find_powershell_files_recursive", lambda: [])
     parser = cli.create_parser()
-    args = parser.parse_args(["--recursive"])
+    parser.parse_args(["--recursive"])
     monkeypatch.setattr(cli, "create_parser", lambda: parser)
     # Patch print_status to record all calls
     status_messages = []
@@ -125,7 +125,7 @@ def test_main_recursive_no_files(monkeypatch):
 
 def test_main_no_files(monkeypatch):
     parser = cli.create_parser()
-    args = parser.parse_args([])
+    parser.parse_args([])
     monkeypatch.setattr(cli, "create_parser", lambda: parser)
     status_messages = []
     monkeypatch.setattr(cli, "print_status", lambda msg, style="white": status_messages.append(msg))
@@ -143,7 +143,7 @@ def test_main_no_files(monkeypatch):
 def test_main_with_mixed_files(monkeypatch):
     """Test when a mixture of PowerShell and non-PowerShell files are provided."""
     parser = cli.create_parser()
-    args = parser.parse_args(["script.ps1", "file.txt", "module.psm1"])
+    parser.parse_args(["script.ps1", "file.txt", "module.psm1"])
     monkeypatch.setattr(cli, "create_parser", lambda: parser)
 
     # Mock function calls for PowerShell detection and script analyzer
@@ -184,7 +184,7 @@ def test_main_with_mixed_files(monkeypatch):
 def test_main_with_format_option(monkeypatch):
     """Test with format option enabled."""
     parser = cli.create_parser()
-    args = parser.parse_args(["--format", "script.ps1"])
+    parser.parse_args(["--format", "script.ps1"])
     monkeypatch.setattr(cli, "create_parser", lambda: parser)
 
     # Mock function calls
@@ -222,7 +222,7 @@ def test_main_with_format_option(monkeypatch):
 def test_main_psscriptanalyzer_install_success(monkeypatch):
     """Test the path where PSScriptAnalyzer is not installed but gets installed successfully."""
     parser = cli.create_parser()
-    args = parser.parse_args(["script.ps1"])
+    parser.parse_args(["script.ps1"])
     monkeypatch.setattr(cli, "create_parser", lambda: parser)
 
     # Mock function calls
@@ -263,7 +263,7 @@ def test_main_psscriptanalyzer_install_success(monkeypatch):
 def test_main_script_analyzer_with_issues(monkeypatch):
     """Test when script analyzer finds issues (returns non-zero)."""
     parser = cli.create_parser()
-    args = parser.parse_args(["script.ps1"])
+    parser.parse_args(["script.ps1"])
     monkeypatch.setattr(cli, "create_parser", lambda: parser)
 
     # Mock function calls
@@ -393,7 +393,7 @@ def test_find_powershell_files_default_dir():
 def test_main_no_files_no_recursive(monkeypatch):
     """Test the main function with no files and not recursive."""
     parser = cli.create_parser()
-    args = parser.parse_args([])  # Empty args
+    parser.parse_args([])  # Empty args
     monkeypatch.setattr(cli, "create_parser", lambda: parser)
 
     # Capture status messages
@@ -408,7 +408,7 @@ def test_main_no_files_no_recursive(monkeypatch):
 def test_main_powershell_not_found(monkeypatch):
     """Test the main function when PowerShell is not found."""
     parser = cli.create_parser()
-    args = parser.parse_args(["file.ps1"])
+    parser.parse_args(["file.ps1"])
     monkeypatch.setattr(cli, "create_parser", lambda: parser)
 
     # Mock powershell not found
@@ -426,7 +426,7 @@ def test_main_powershell_not_found(monkeypatch):
 def test_main_psscriptanalyzer_install_fails(monkeypatch):
     """Test the main function when PSScriptAnalyzer installation fails."""
     parser = cli.create_parser()
-    args = parser.parse_args(["file.ps1"])
+    parser.parse_args(["file.ps1"])
     monkeypatch.setattr(cli, "create_parser", lambda: parser)
 
     # Mock function calls

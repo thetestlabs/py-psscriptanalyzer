@@ -28,7 +28,7 @@ class TestSecurityFilter:
     def test_main_with_security_only(self, monkeypatch) -> None:
         """Test main function with security_only flag."""
         parser = cli.create_parser()
-        args = parser.parse_args(["--security-only", "script.ps1"])
+        parser.parse_args(["--security-only", "script.ps1"])
         monkeypatch.setattr(cli, "create_parser", lambda: parser)
 
         # Mock function calls
@@ -96,7 +96,7 @@ class TestSarifOutput:
     def test_main_with_sarif_output(self, monkeypatch) -> None:
         """Test main function with sarif output format."""
         parser = cli.create_parser()
-        args = parser.parse_args(["--output-format", "sarif", "script.ps1"])
+        parser.parse_args(["--output-format", "sarif", "script.ps1"])
         monkeypatch.setattr(cli, "create_parser", lambda: parser)
 
         # Mock function calls
@@ -120,7 +120,7 @@ class TestSarifOutput:
         output_file = tmp_path / "results.sarif"
 
         parser = cli.create_parser()
-        args = parser.parse_args(["--output-format", "sarif", "--output-file", str(output_file), "script.ps1"])
+        parser.parse_args(["--output-format", "sarif", "--output-file", str(output_file), "script.ps1"])
         monkeypatch.setattr(cli, "create_parser", lambda: parser)
 
         # Mock function calls

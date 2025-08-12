@@ -357,28 +357,29 @@ def test_exception_handling():
 @patch("py_psscriptanalyzer.core.run_script_analyzer", return_value=0)
 def test_main_with_ps_files(mock_run, mock_check, mock_find):
     """Test main function with PowerShell files."""
-    with patch("sys.argv", ["py-psscriptanalyzer", "test.ps1"]):
-        with patch("builtins.print") as mock_print:
-            result = main()
+    with patch("sys.argv", ["py-psscriptanalyzer", "test.ps1"]), patch("builtins.print") as mock_print:
+        result = main()
 
-            assert result == 0
-            mock_run.assert_called_once()
-            mock_print.assert_any_call("Using PowerShell: pwsh")
-            mock_print.assert_any_call("Analyzing 1 PowerShell file(s)...")
+        assert result == 0
+        mock_run.assert_called_once()
+        mock_print.assert_any_call("Using PowerShell: pwsh")
+        mock_print.assert_any_call("Analyzing 1 PowerShell file(s)...")
 
 
 @patch("py_psscriptanalyzer.core.find_powershell", return_value=None)
 def test_main_no_powershell(mock_find):
     """Test main function when PowerShell is not found."""
-    with patch("sys.argv", ["py-psscriptanalyzer", "test.ps1"]):
-        with patch("builtins.print") as mock_print:
-            with patch("sys.stderr") as mock_stderr:
-                result = main()
+    with (
+        patch("sys.argv", ["py-psscriptanalyzer", "test.ps1"]),
+        patch("builtins.print") as mock_print,
+        patch("sys.stderr"),
+    ):
+        result = main()
 
-                assert result == 1
-                mock_find.assert_called_once()
-                # Check for error message about PowerShell not found
-                assert any("PowerShell not found" in str(call) for call in mock_print.call_args_list)
+        assert result == 1
+        mock_find.assert_called_once()
+        # Check for error message about PowerShell not found
+        assert any("PowerShell not found" in str(call) for call in mock_print.call_args_list)
 
 
 @patch("py_psscriptanalyzer.core.find_powershell", return_value="pwsh")
@@ -387,15 +388,14 @@ def test_main_no_powershell(mock_find):
 @patch("py_psscriptanalyzer.core.run_script_analyzer", return_value=0)
 def test_main_install_psscriptanalyzer(mock_run, mock_install, mock_check, mock_find):
     """Test main function when PSScriptAnalyzer needs to be installed."""
-    with patch("sys.argv", ["py-psscriptanalyzer", "test.ps1"]):
-        with patch("builtins.print") as mock_print:
-            result = main()
+    with patch("sys.argv", ["py-psscriptanalyzer", "test.ps1"]), patch("builtins.print") as mock_print:
+        result = main()
 
-            assert result == 0
-            mock_check.assert_called_once()
-            mock_install.assert_called_once()
-            mock_run.assert_called_once()
-            assert any("PSScriptAnalyzer installed successfully" in str(call) for call in mock_print.call_args_list)
+        assert result == 0
+        mock_check.assert_called_once()
+        mock_install.assert_called_once()
+        mock_run.assert_called_once()
+        assert any("PSScriptAnalyzer installed successfully" in str(call) for call in mock_print.call_args_list)
 
 
 @patch("py_psscriptanalyzer.core.find_powershell", return_value="pwsh")
@@ -403,16 +403,18 @@ def test_main_install_psscriptanalyzer(mock_run, mock_install, mock_check, mock_
 @patch("py_psscriptanalyzer.core.install_psscriptanalyzer", return_value=False)
 def test_main_psscriptanalyzer_install_failed(mock_install, mock_check, mock_find):
     """Test main function when PSScriptAnalyzer installation fails."""
-    with patch("sys.argv", ["py-psscriptanalyzer", "test.ps1"]):
-        with patch("builtins.print") as mock_print:
-            with patch("sys.stderr") as mock_stderr:
-                result = main()
+    with (
+        patch("sys.argv", ["py-psscriptanalyzer", "test.ps1"]),
+        patch("builtins.print") as mock_print,
+        patch("sys.stderr"),
+    ):
+        result = main()
 
-                assert result == 1
-                mock_check.assert_called_once()
-                mock_install.assert_called_once()
-                # Check for error message about installation failure
-                assert any("Failed to install PSScriptAnalyzer" in str(call) for call in mock_print.call_args_list)
+        assert result == 1
+        mock_check.assert_called_once()
+        mock_install.assert_called_once()
+        # Check for error message about installation failure
+        assert any("Failed to install PSScriptAnalyzer" in str(call) for call in mock_print.call_args_list)
 
 
 def test_main_no_ps_files():
@@ -427,10 +429,9 @@ def test_main_no_ps_files():
 @patch("py_psscriptanalyzer.core.run_script_analyzer", return_value=0)
 def test_main_with_format_flag(mock_run, mock_check, mock_find):
     """Test main function with format flag."""
-    with patch("sys.argv", ["py-psscriptanalyzer", "--format", "test.ps1"]):
-        with patch("builtins.print") as mock_print:
-            result = main()
+    with patch("sys.argv", ["py-psscriptanalyzer", "--format", "test.ps1"]), patch("builtins.print") as mock_print:
+        result = main()
 
-            assert result == 0
-            mock_run.assert_called_once_with("pwsh", ["test.ps1"], format_files=True, severity="Warning")
-            mock_print.assert_any_call("Formatting 1 PowerShell file(s)...")
+        assert result == 0
+        mock_run.assert_called_once_with("pwsh", ["test.ps1"], format_files=True, severity="Warning")
+        mock_print.assert_any_call("Formatting 1 PowerShell file(s)...")
