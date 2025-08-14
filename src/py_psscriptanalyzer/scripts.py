@@ -47,23 +47,13 @@ def _generate_github_actions_output() -> str:
                             default { "error" }
                         }
 
-                        # Map severity for GitHub Actions display
-                        $displaySeverity = switch ($issue.Severity) {
-                            "Error" { "Error" }
-                            "Warning" { "Warning" }
-                            "Information" { "Notice" }
-                            default { "Error" }
-                        }
-
-                        # GitHub Actions annotation format
+                        # GitHub Actions annotation format - this is all we need for GitHub Actions
+                        # It will automatically display in the proper format in the GitHub UI
                         $annotation = "::" + $annotationType + " file=" + $issue.ScriptName + `
                             ",line=" + $issue.Line + ",title=" + $issue.RuleName + "::" + $issue.Message
                         Write-Host $annotation
 
-                        # Also show regular output for readability with GitHub Actions terminology
-                        $header = "$($displaySeverity): $($location): $($issue.RuleName)"
-                        Write-Host $header
-                        Write-Host "  $($issue.Message)"
+                        # Add a blank line for better readability in logs
                         Write-Host ""
     """
 
