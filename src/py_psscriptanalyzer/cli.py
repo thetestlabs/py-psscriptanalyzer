@@ -11,7 +11,11 @@ from rich.table import Table
 from rich.text import Text
 
 from .core import run_script_analyzer
-from .powershell import check_psscriptanalyzer_installed, find_powershell, install_psscriptanalyzer
+from .powershell import (
+    check_psscriptanalyzer_installed,
+    find_powershell,
+    install_psscriptanalyzer,
+)
 
 # Create a simple console with minimal configuration for maximum compatibility
 console = Console()
@@ -58,11 +62,17 @@ class RichHelpFormatter(argparse.HelpFormatter):
 
         help_text.append("SEVERITY LEVELS", style="bold green")
         help_text.append("\n")
-        help_text.append("  Information: Shows all issues (Information, Warning, Error)\n", style="dim")
+        help_text.append(
+            "  Information: Shows all issues (Information, Warning, Error)\n",
+            style="dim",
+        )
         help_text.append("  Warning:     Shows Warning and Error issues (default)\n", style="dim")
         help_text.append("  Error:       Shows only Error issues\n", style="dim")
         help_text.append("  \n")
-        help_text.append("  Set SEVERITY_LEVEL environment variable to change the default.\n", style="yellow")
+        help_text.append(
+            "  Set SEVERITY_LEVEL environment variable to change the default.\n",
+            style="yellow",
+        )
         help_text.append("\n")
 
         # Create options table
@@ -72,11 +82,34 @@ class RichHelpFormatter(argparse.HelpFormatter):
 
         table.add_row("--format, -f", "Format files instead of analyzing them")
         table.add_row(
-            "--severity , -s", "Set minimum severity level: Information (all), Warning (warn+error), Error (error only)"
+            "--severity, -s",
+            "Set minimum severity level: Information (all), Warning (warn+error), Error (error only)",
         )
-        table.add_row("--recursive, -r", "Search for PowerShell files recursively from current directory")
+        table.add_row(
+            "--recursive, -r",
+            "Search for PowerShell files recursively from current directory",
+        )
         table.add_row("--help, -h", "Show this help message")
         table.add_row("--version, -v", "Show version information")
+        table.add_row()
+
+        # Rule category filters
+        table.add_row("--security-only", "Only show security-related findings")
+        table.add_row("--style-only", "Only show code style-related findings")
+        table.add_row("--performance-only", "Only show performance-related findings")
+        table.add_row("--best-practices-only", "Only show best practices-related findings")
+        table.add_row("--dsc-only", "Only show DSC (Desired State Configuration) related findings")
+        table.add_row("--compatibility-only", "Only show compatibility-related findings")
+        table.add_row()
+
+        # Custom rule selection
+        table.add_row("--include-rules", "Comma-separated list of specific rule names to include")
+        table.add_row("--exclude-rules", "Comma-separated list of specific rule names to exclude")
+        table.add_row()
+
+        # Output format options
+        table.add_row("--output-format", "Output format: text, json, or sarif (default: text)")
+        table.add_row("--output-file", "File to write output to (default: output to console)")
 
         # Examples section
         examples_text = Text()
@@ -93,7 +126,23 @@ class RichHelpFormatter(argparse.HelpFormatter):
         examples_text.append("  # Show all issues (including informational)\n", style="dim")
         examples_text.append("  py-psscriptanalyzer --severity Information script.ps1\n\n", style="cyan")
         examples_text.append("  # Use environment variable for default severity\n", style="dim")
-        examples_text.append("  export SEVERITY_LEVEL=Error && py-psscriptanalyzer *.ps1\n\n", style="cyan")
+        examples_text.append(
+            "  export SEVERITY_LEVEL=Error && py-psscriptanalyzer *.ps1\n\n",
+            style="cyan",
+        )
+        examples_text.append("  # Filter for security-related issues only\n", style="dim")
+        examples_text.append("  py-psscriptanalyzer --security-only script.ps1\n\n", style="cyan")
+        examples_text.append("  # Include only specific rules\n", style="dim")
+        examples_text.append(
+            "  py-psscriptanalyzer --include-rules PSAvoidUsingPlainTextForPassword,\\\n"
+            "    PSAvoidUsingWriteHost script.ps1\n\n",
+            style="cyan",
+        )
+        examples_text.append("  # Generate SARIF output for code scanning integration\n", style="dim")
+        examples_text.append(
+            "  py-psscriptanalyzer --output-format sarif --output-file results.sarif *.ps1\n\n",
+            style="cyan",
+        )
 
         # Render everything to console and capture
         with console.capture() as capture:
@@ -129,10 +178,18 @@ def create_parser() -> argparse.ArgumentParser:
     parser.add_argument("-h", "--help", action="help", help="Show this help message and exit")
 
     parser.add_argument(
-        "-r", "--recursive", action="store_true", help="Search for PowerShell files recursively from current directory"
+        "-r",
+        "--recursive",
+        action="store_true",
+        help="Search for PowerShell files recursively from current directory",
     )
 
-    parser.add_argument("-f", "--format", action="store_true", help="Format files instead of just analyzing them")
+    parser.add_argument(
+        "-f",
+        "--format",
+        action="store_true",
+        help="Format files instead of just analyzing them",
+    )
 
     parser.add_argument(
         "-s",
@@ -144,19 +201,35 @@ def create_parser() -> argparse.ArgumentParser:
 
     # Rule category filters
     rule_filter_group = parser.add_argument_group("Rule category filters")
-    rule_filter_group.add_argument("--security-only", action="store_true", help="Only show security-related findings")
-    rule_filter_group.add_argument("--style-only", action="store_true", help="Only show code style-related findings")
     rule_filter_group.add_argument(
-        "--performance-only", action="store_true", help="Only show performance-related findings"
+        "--security-only",
+        action="store_true",
+        help="Only show security-related findings",
     )
     rule_filter_group.add_argument(
-        "--best-practices-only", action="store_true", help="Only show best practices-related findings"
+        "--style-only",
+        action="store_true",
+        help="Only show code style-related findings",
     )
     rule_filter_group.add_argument(
-        "--dsc-only", action="store_true", help="Only show DSC (Desired State Configuration) related findings"
+        "--performance-only",
+        action="store_true",
+        help="Only show performance-related findings",
     )
     rule_filter_group.add_argument(
-        "--compatibility-only", action="store_true", help="Only show compatibility-related findings"
+        "--best-practices-only",
+        action="store_true",
+        help="Only show best practices-related findings",
+    )
+    rule_filter_group.add_argument(
+        "--dsc-only",
+        action="store_true",
+        help="Only show DSC (Desired State Configuration) related findings",
+    )
+    rule_filter_group.add_argument(
+        "--compatibility-only",
+        action="store_true",
+        help="Only show compatibility-related findings",
     )
 
     # Custom rule selection
@@ -165,7 +238,10 @@ def create_parser() -> argparse.ArgumentParser:
 
     # Output format options
     parser.add_argument(
-        "--output-format", choices=["text", "json", "sarif"], default="text", help="Output format (default: text)"
+        "--output-format",
+        choices=["text", "json", "sarif"],
+        default="text",
+        help="Output format (default: text)",
     )
 
     parser.add_argument("--output-file", help="File to write output to (default: output to console)")

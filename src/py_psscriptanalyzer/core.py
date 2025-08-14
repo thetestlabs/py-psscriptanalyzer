@@ -147,9 +147,8 @@ def convert_to_sarif(ps_results: list[dict[str, Any]], files: list[str]) -> dict
     # Track rules we've already added
     rules_added = set()
 
-    # Handle single result case (convert to list)
-    if ps_results and not isinstance(ps_results, list):
-        ps_results = [ps_results]
+    # Ensure ps_results is a list
+    ps_results = [ps_results] if ps_results and not isinstance(ps_results, list) else ps_results
 
     # Process results
     for result in ps_results:
