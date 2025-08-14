@@ -9,7 +9,7 @@ Add py-psscriptanalyzer to your `.pre-commit-config.yaml`:
 ```yaml
 repos:
   - repo: https://github.com/thetestlabs/py-psscriptanalyzer
-    rev: v0.3.0  # Use the latest version
+    rev: v0.3.1  # Use the latest version
     hooks:
       - id: py-psscriptanalyzer
       - id: py-psscriptanalyzer-format
@@ -22,7 +22,7 @@ py-psscriptanalyzer uses a **hierarchical severity system** where each level inc
 ```yaml
 repos:
   - repo: https://github.com/thetestlabs/py-psscriptanalyzer
-    rev: v0.3.0
+    rev: v0.3.1
     hooks:
       - id: py-psscriptanalyzer
         args: ["--severity", "Error"]  # Only show critical errors
@@ -47,7 +47,7 @@ env:
 # Or in your pre-commit hook
 repos:
   - repo: https://github.com/thetestlabs/py-psscriptanalyzer
-    rev: v0.3.0
+    rev: v0.3.1
     hooks:
       - id: py-psscriptanalyzer
         # Uses SEVERITY_LEVEL environment variable if set, otherwise defaults to Warning
@@ -67,7 +67,7 @@ Filter analysis by rule category:
 ```yaml
 repos:
   - repo: https://github.com/thetestlabs/py-psscriptanalyzer
-    rev: v0.3.0
+    rev: v0.3.1
     hooks:
       - id: py-psscriptanalyzer
         args: ["--security-only"]  # Only show security-related issues
@@ -87,7 +87,7 @@ Specify which rules to include or exclude:
 ```yaml
 repos:
   - repo: https://github.com/thetestlabs/py-psscriptanalyzer
-    rev: v0.3.0
+    rev: v0.3.1
     hooks:
       # Include only specific rules
       - id: py-psscriptanalyzer
@@ -107,7 +107,7 @@ Configure different output formats:
 ```yaml
 repos:
   - repo: https://github.com/thetestlabs/py-psscriptanalyzer
-    rev: v0.3.0
+    rev: v0.3.1
     hooks:
       # Generate JSON output
       - id: py-psscriptanalyzer
@@ -125,7 +125,7 @@ Use the `--recursive` flag to automatically find and process all PowerShell file
 ```yaml
 repos:
   - repo: https://github.com/thetestlabs/py-psscriptanalyzer
-    rev: v0.3.0
+    rev: v0.3.1
     hooks:
       - id: py-psscriptanalyzer
         args: ["--recursive", "--severity", "Error"]
@@ -177,7 +177,7 @@ By default, the hooks run on all PowerShell files. You can customize this:
 ```yaml
 repos:
   - repo: https://github.com/thetestlabs/py-psscriptanalyzer
-    rev: v0.3.0
+    rev: v0.3.1
     hooks:
       - id: py-psscriptanalyzer
         files: \\.ps1$  # Only .ps1 files
@@ -193,7 +193,7 @@ Exclude specific files or directories:
 ```yaml
 repos:
   - repo: https://github.com/thetestlabs/py-psscriptanalyzer
-    rev: v0.3.0
+    rev: v0.3.1
     hooks:
       - id: py-psscriptanalyzer
         exclude: ^(tests/|examples/).*\\.ps1$  # Skip test and example files
@@ -206,7 +206,7 @@ repos:
 ```yaml
 repos:
   - repo: https://github.com/thetestlabs/py-psscriptanalyzer
-    rev: v0.3.0
+    rev: v0.3.1
     hooks:
       # Strict analysis for main code
       - id: py-psscriptanalyzer
@@ -230,7 +230,7 @@ repos:
 ```yaml
 repos:
   - repo: https://github.com/thetestlabs/py-psscriptanalyzer
-    rev: v0.3.0
+    rev: v0.3.1
     hooks:
       # Security-focused analysis
       - id: py-psscriptanalyzer
@@ -265,7 +265,7 @@ repos:
 
   # PowerShell hooks
   - repo: https://github.com/thetestlabs/py-psscriptanalyzer
-    rev: v0.3.0
+    rev: v0.3.1
     hooks:
       - id: py-psscriptanalyzer
       - id: py-psscriptanalyzer-format

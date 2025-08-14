@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.3.1] - 2025-08-14
+
 ### Fixed
 
 - Fixed SARIF output generation by ensuring JSON output format is used for PowerShell script when generating SARIF
