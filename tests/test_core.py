@@ -181,7 +181,7 @@ def test_run_script_analyzer_sarif_output_to_file(
         )
 
     assert result == 0
-    mock_open_func.assert_called_once_with("output.sarif", "w")
+    mock_open_func.assert_called_once_with("output.sarif", "w", encoding="utf-8")
 
 
 def test_run_script_analyzer_sarif_output_to_console() -> None:
@@ -295,7 +295,7 @@ def test_run_script_analyzer_sarif_output() -> None:
             assert result == 0
             mock_run.assert_called_once()
             mock_convert.assert_called_once()
-            mock_open.assert_called_once_with(tmp_file, "w")
+            mock_open.assert_called_once_with(tmp_file, "w", encoding="utf-8")
 
 
 def test_file_output_handling() -> None:
