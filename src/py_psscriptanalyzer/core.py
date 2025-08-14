@@ -49,64 +49,56 @@ def run_script_analyzer(
             compatibility_only=compatibility_only,
             include_rules=include_rules,
             exclude_rules=exclude_rules,
-            json_output=(output_format == "json"),
+            json_output=(output_format in ["json", "sarif"]),
         )
 
     try:
-        if output_format == "text" or format_files:
+        if format_files:
+            # For formatting, just run the command normally
+            result = subprocess.run(
+                [powershell_cmd, "-Command", ps_command],
+                text=True,
+                timeout=ANALYSIS_TIMEOUT,
+                check=False,
+                capture_output=False,
+            )
+            return result.returncode
+
+        if output_format == "text":
             # Standard console output mode
             result = subprocess.run(
                 [powershell_cmd, "-Command", ps_command],
                 text=True,
                 timeout=ANALYSIS_TIMEOUT,
                 check=False,
-                capture_output=(output_format == "json"),
+                capture_output=False,
             )
-
-            # Handle json output that will be transformed to sarif
-            if output_format == "json" and not format_files:
-                # Parse PowerShell JSON output or empty list if no results
-                json_data = [] if result.returncode == 0 and not result.stdout.strip() else json.loads(result.stdout)
-
-                # If SARIF format is requested, convert JSON to SARIF
-                if output_format == "sarif":
-                    sarif_data = convert_to_sarif(json_data, files)
-                    output_json = json.dumps(sarif_data, indent=2)
-                else:
-                    output_json = json.dumps(json_data, indent=2)
-
-                if output_file:
-                    with open(output_file, "w") as f:
-                        f.write(output_json)
-                else:
-                    print(output_json)
-
             return result.returncode
 
-        if output_format == "sarif":
-            # First get JSON output from PowerShell
-            result = subprocess.run(
-                [powershell_cmd, "-Command", ps_command],
-                text=True,
-                timeout=ANALYSIS_TIMEOUT,
-                check=False,
-                capture_output=True,
-            )
+        # Handle JSON and SARIF output formats
+        result = subprocess.run(
+            [powershell_cmd, "-Command", ps_command],
+            text=True,
+            timeout=ANALYSIS_TIMEOUT,
+            check=False,
+            capture_output=True,
+        )
 
-            # Parse PowerShell JSON output or empty list if no results
-            json_data = [] if result.returncode == 0 and not result.stdout.strip() else json.loads(result.stdout)
+        # Parse PowerShell JSON output or empty list if no results
+        json_data = [] if result.returncode == 0 and not result.stdout.strip() else json.loads(result.stdout)
 
-            # Convert to SARIF
-            sarif_data = convert_to_sarif(json_data, files)
-            sarif_json = json.dumps(sarif_data, indent=2)
+        # If SARIF format is requested, convert JSON to SARIF
+        output_data = convert_to_sarif(json_data, files) if output_format == "sarif" else json_data
 
-            if output_file:
-                with open(output_file, "w") as f:
-                    f.write(sarif_json)
-            else:
-                print(sarif_json)
+        output_json = json.dumps(output_data, indent=2)
 
-            return result.returncode
+        if output_file:
+            with open(output_file, "w", encoding="utf-8") as f:
+                f.write(output_json)
+        else:
+            print(output_json)
+
+        return result.returncode
 
     except subprocess.TimeoutExpired:
         print("Timeout while running PSScriptAnalyzer")
@@ -114,17 +106,23 @@ def run_script_analyzer(
     except json.JSONDecodeError:
         print("Error parsing JSON output from PSScriptAnalyzer")
         return 1
-    except Exception as e:
+    except Exception as e:  # pylint: disable=broad-except
         print(f"Error processing results: {e}")
         return 1
-
-    return 0
 
 
 def convert_to_sarif(ps_results: list[dict[str, Any]], files: list[str]) -> dict[str, Any]:
     """Convert PSScriptAnalyzer results to SARIF format."""
     # Map severity levels to SARIF levels
-    severity_map = {"Error": "error", "Warning": "warning", "Information": "note"}
+    severity_map = {
+        "Error": "error",
+        "Warning": "warning",
+        "Information": "note",
+        # PowerShell may return numeric severity values
+        0: "note",  # Information
+        1: "warning",  # Warning
+        2: "error",  # Error
+    }
 
     # Create base SARIF structure
     sarif = {
@@ -148,6 +146,10 @@ def convert_to_sarif(ps_results: list[dict[str, Any]], files: list[str]) -> dict
 
     # Track rules we've already added
     rules_added = set()
+
+    # Handle single result case (convert to list)
+    if ps_results and not isinstance(ps_results, list):
+        ps_results = [ps_results]
 
     # Process results
     for result in ps_results:
