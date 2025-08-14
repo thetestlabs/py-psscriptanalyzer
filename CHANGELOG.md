@@ -1,5 +1,14 @@
 # Change Log
 
+## [Unreleased]
+
+### Fixed
+
+- Fixed SARIF output generation by ensuring JSON output format is used for PowerShell script when generating SARIF
+- Improved error handling in the SARIF conversion process for better reliability
+- Enhanced type checking in the `convert_to_sarif` function to handle various PowerShell output formats
+- Updated file handling to explicitly use UTF-8 encoding for better cross-platform compatibility
+
 ## [0.3.0] - 2025-08-12
 
 ### Added
