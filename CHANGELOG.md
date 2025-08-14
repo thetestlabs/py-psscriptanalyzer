@@ -8,6 +8,7 @@
 - Improved error handling in the SARIF conversion process for better reliability
 - Enhanced type checking in the `convert_to_sarif` function to handle various PowerShell output formats
 - Updated file handling to explicitly use UTF-8 encoding for better cross-platform compatibility
+- Removed duplicate messages in GitHub Actions output for cleaner CI logs
 
 ## [0.3.0] - 2025-08-12
 
