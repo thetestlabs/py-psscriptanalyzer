@@ -46,6 +46,7 @@ A Python wrapper for [PSScriptAnalyzer](https://github.com/PowerShell/PSScriptAn
        hooks:
          - id: py-psscriptanalyzer
          - id: py-psscriptanalyzer-format
+   ```
 
 ## Usage
 
