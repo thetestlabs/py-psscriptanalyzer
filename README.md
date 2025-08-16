@@ -1,10 +1,10 @@
-[![codecov](https://codecov.io/github/thetestlabs/py-psscriptanalyzer/graph/badge.svg?token=B6K3MDQ2HF)](https://codecov.io/github/thetestlabs/py-psscriptanalyzer) [![Codacy Badge](https://app.codacy.com/project/badge/Grade/cc86fb73526e4d649739e34158c2cb05)](https://app.codacy.com/gh/thetestlabs/py-psscriptanalyzer/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade) [![Code style: ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
-
-[![Python Compatibility](https://img.shields.io/pypi/pyversions/py-psscriptanalyzer)](https://pypi.org/project/py-psscriptanalyzer/)
-
-[![docs](https://app.readthedocs.org/projects/py-psscriptanalyzer/badge/?version=latest)](https://readthedocs.org/projects/py-psscriptanalyzer/) [![Release](https://github.com/thetestlabs/py-psscriptanalyzer/actions/workflows/release.yaml/badge.svg)](https://github.com/thetestlabs/py-psscriptanalyzer/actions/workflows/release.yaml)
-
-[![PyPI version](https://badge.fury.io/py/py-psscriptanalyzer.svg)](https://badge.fury.io/py/py-psscriptanalyzer) [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![PyPI version](https://badge.fury.io/py/py-psscriptanalyzer.svg)](https://badge.fury.io/py/py-psscriptanalyzer)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![Code style: ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
+[![codecov](https://codecov.io/github/thetestlabs/py-psscriptanalyzer/graph/badge.svg?token=B6K3MDQ2HF)](https://codecov.io/github/thetestlabs/py-psscriptanalyzer)
+[![Codacy Badge](https://app.codacy.com/project/badge/Grade/cc86fb73526e4d649739e34158c2cb05)](https://app.codacy.com/gh/thetestlabs/py-psscriptanalyzer/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)
+[![docs](https://app.readthedocs.org/projects/py-psscriptanalyzer/badge/?version=latest)](https://readthedocs.org/projects/py-psscriptanalyzer/)
+[![Release](https://github.com/thetestlabs/py-psscriptanalyzer/actions/workflows/release.yaml/badge.svg)](https://github.com/thetestlabs/py-psscriptanalyzer/actions/workflows/release.yaml)
 
 # py-psscriptanalyzer
 
