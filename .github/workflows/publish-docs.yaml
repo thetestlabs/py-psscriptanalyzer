@@ -1,0 +1,50 @@
+name: Publish Documentation
+
+on: workflow_dispatch
+
+permissions:
+  contents: read
+
+jobs:
+  build-docs:
+    name: Build documentation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@e92bafb6253dcd438e0484186d7669ea7a8ca1cc
+        with:
+          version: "latest"
+
+      - name: Set up Python
+        run: uv python install 3.13
+
+      - name: Install documentation dependencies
+        run: uv sync --group docs
+
+      - name: Build documentation
+        run: |
+          mkdir -p docs/_static
+          uv run sphinx-build -b html docs docs/_build/html --keep-going
+
+      - name: Upload documentation artifacts
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: documentation
+          path: docs/_build/html/
+          retention-days: 30
+
+  deploy:
+    name: Deploy to ReadTheDocs
+    runs-on: ubuntu-latest
+    needs: build-docs
+
+    steps:
+      - name: Trigger ReadTheDocs build
+        run: |
+          curl -X POST \
+            -H "Authorization: Token ${{ secrets.READTHEDOCS_TOKEN }}" \
+            https://readthedocs.org/api/v3/projects/py-psscriptanalyzer/versions/latest/builds/
+        continue-on-error: true  # Don't fail the workflow if RTD webhook fails
