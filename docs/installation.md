@@ -2,11 +2,11 @@
 
 ## Prerequisites
 
-Before installing py-psscriptanalyzer, ensure you have the following prerequisites:
+Before installing py-psscriptanalyzer, ensure you have the following:
 
 ### Python
 
-py-psscriptanalyzer requires Python 3.9 or later.
+py-psscriptanalyzer requires Python 3.9 or later:
 
 ```bash
 python --version  # Should be 3.9 or higher
@@ -14,7 +14,7 @@ python --version  # Should be 3.9 or higher
 
 ### PowerShell
 
-The package requires PowerShell Core (pwsh) to be installed and available in your system PATH.
+PowerShell Core (pwsh) must be installed and available in your system PATH.
 
 #### Windows
 
@@ -25,21 +25,19 @@ The package requires PowerShell Core (pwsh) to be installed and available in you
 winget install --id Microsoft.PowerShell --source winget
 ```
 
-##### Option 2: Direct Download (Windows)
+##### Option 2: Direct Download
 
 Download from the [PowerShell GitHub releases page](https://github.com/PowerShell/PowerShell/releases).
 
 #### macOS
 
-##### Option 1: Homebrew (Recommended)
-
 ```bash
-brew install --cask powershell
+# Using Homebrew (recommended)
+brew install powershell
+
+# Or using MacPorts
+sudo port install powershell
 ```
-
-##### Option 2: Direct Download (macOS)
-
-Download from the [PowerShell GitHub releases page](https://github.com/PowerShell/PowerShell/releases).
 
 #### Linux
 
@@ -78,145 +76,114 @@ sudo dnf install -y powershell
 
 ### Verify PowerShell Installation
 
-After installation, verify PowerShell is working:
-
 ```bash
 pwsh --version
 ```
 
-You should see output similar to:
+## Install py-psscriptanalyzer
 
-```text
-PowerShell 7.5.2
-```
-
-## Installing py-psscriptanalyzer
-
-### Method 1: PyPI (Recommended)
-
-Install directly from PyPI using pip:
+### From PyPI (Recommended)
 
 ```bash
 pip install py-psscriptanalyzer
 ```
 
-### Method 2: From Source
-
-Install directly from the GitHub repository:
-
-```bash
-pip install git+https://github.com/thetestlabs/py-psscriptanalyzer.git
-```
-
-### Verify Installation
-
-After installation, verify the CLI is working:
-
-```bash
-py-psscriptanalyzer --help
-```
-
-## Using as Pre-commit Hook
-
-### Method 1: Add to Existing .pre-commit-config.yaml
-
-If you already have a `.pre-commit-config.yaml` file in your repository, add the py-psscriptanalyzer hooks:
-
-```yaml
-repos:
-  # ... your existing hooks ...
-
-  - repo: https://github.com/thetestlabs/py-psscriptanalyzer
-    rev: v0.3.1  # Use the latest version
-    hooks:
-      # Lint PowerShell files
-      - id: py-psscriptanalyzer
-        args: ["--severity", "Warning"]
-
-      # Format PowerShell files
-      - id: py-psscriptanalyzer-format
-```
-
-### Method 2: Create New .pre-commit-config.yaml
-
-Create a new `.pre-commit-config.yaml` file in your repository root:
-
-```yaml
-repos:
-  - repo: https://github.com/thetestlabs/py-psscriptanalyzer
-    rev: v0.3.1  # Use the latest version
-    hooks:
-      - id: py-psscriptanalyzer
-      - id: py-psscriptanalyzer-format
-```
-
-### Install and Run Pre-commit
-
-```bash
-# Install pre-commit (if not already installed)
-pip install pre-commit
-
-# Install the git hook scripts
-pre-commit install
-
-# Run against all files (optional)
-pre-commit run --all-files
-```
-
-## Development Installation
-
-For development or contributing to py-psscriptanalyzer:
+### From Source
 
 ```bash
 # Clone the repository
 git clone https://github.com/thetestlabs/py-psscriptanalyzer.git
 cd py-psscriptanalyzer
 
-# Install uv (if not already installed)
+# Install using pip
+pip install .
+```
+
+### Verify Installation
+
+```bash
+py-psscriptanalyzer --version
+py-psscriptanalyzer --help
+```
+
+## Development Installation
+
+For contributors and developers:
+
+```bash
+# Clone the repository
+git clone https://github.com/thetestlabs/py-psscriptanalyzer.git
+cd py-psscriptanalyzer
+
+# Install uv (modern Python package manager)
 pip install uv
 
-# Install dependencies
-uv sync --group dev
+# Install dependencies and development tools
+uv sync --group dev --group docs
 
 # Install in editable mode
 uv pip install -e .
+
+# Install pre-commit hooks
+uv run pre-commit install
 ```
 
 ## Troubleshooting
 
 ### PowerShell Not Found
 
-If you get an error that PowerShell is not found:
+If you encounter "PowerShell not found" errors:
 
-1. Ensure PowerShell is installed (see prerequisites above)
-2. Verify PowerShell is in your PATH:
+1. **Verify PowerShell is installed:**
    ```bash
    which pwsh  # On Unix-like systems
    where pwsh  # On Windows
    ```
-3. Try running PowerShell directly:
+
+2. **Test PowerShell directly:**
    ```bash
    pwsh -Command "Write-Output 'Hello World'"
    ```
 
+3. **Check your PATH:** Ensure the PowerShell installation directory is in your system PATH.
+
 ### PSScriptAnalyzer Module Missing
 
-The first time you run py-psscriptanalyzer, it will automatically attempt to install the PSScriptAnalyzer PowerShell module. If this fails:
+py-psscriptanalyzer automatically installs the PSScriptAnalyzer PowerShell module on first use. If installation fails:
 
-1. Install manually:
+1. **Install manually:**
    ```bash
    pwsh -Command "Install-Module -Name PSScriptAnalyzer -Force -Scope CurrentUser"
    ```
 
-2. Verify installation:
+2. **Verify installation:**
    ```bash
    pwsh -Command "Get-Module -ListAvailable PSScriptAnalyzer"
    ```
 
 ### Permission Issues
 
-On Unix-like systems, you might need to update the PowerShell execution policy:
+On Unix-like systems, you may need to adjust the PowerShell execution policy:
 
 ```bash
 pwsh -Command "Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser"
 ```
+
+### Python Version Issues
+
+Ensure you're using Python 3.9 or later:
+
+```bash
+python --version
+pip --version
+```
+
+If you have multiple Python versions, you may need to use `python3` and `pip3` instead.
+
+## Next Steps
+
+After installation:
+
+- See [Usage](usage.md) for command-line usage examples
+- See [Configuration](configuration.md) for pre-commit hook setup and advanced configuration
+- See [Development](development.md) for contributing guidelines

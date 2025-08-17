@@ -10,7 +10,6 @@ installation
 usage
 configuration
 development
-api
 changelog
 ```
 
@@ -49,5 +48,6 @@ changelog
 - **Configurable**: Customizable severity levels and rule selection
 - **Fast**: Efficient processing with proper error handling
 - **Modern Python**: Built with modern Python packaging standards
+- **CI/CD Friendly** - Perfect for automation pipelines
 - **CLI Tool**: Standalone command-line interface
 - **Pre-commit Integration**: Ready-to-use pre-commit hooks
