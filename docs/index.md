@@ -10,8 +10,7 @@ installation
 usage
 configuration
 development
-api
-change_log
+changelog
 ```
 
 ## Quick Start

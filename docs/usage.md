@@ -2,11 +2,9 @@
 
 ## Command Line Usage
 
-py-psscriptanalyzer can be used as a standalone command-line tool, as a pre-commit hook, or integrated into your CI/CD workflows.
+py-psscriptanalyzer provides PowerShell static analysis and formatting from the command line.
 
-### Basic Command Line
-
-Analyze PowerShell files directly:
+### Basic Commands
 
 ```bash
 # Analyze a single file
@@ -15,505 +13,219 @@ py-psscriptanalyzer script.ps1
 # Analyze multiple files
 py-psscriptanalyzer script1.ps1 module.psm1 manifest.psd1
 
-# Analyze all PowerShell files in current directory
-py-psscriptanalyzer *.ps1
+# Analyze all PowerShell files recursively
+py-psscriptanalyzer --recursive
 
-# Format a file
+# Format a PowerShell file
 py-psscriptanalyzer --format script.ps1
 ```
 
 ### Command Line Options
 
-```bash
-py-psscriptanalyzer --help
-```
-
-Available options:
-
-- `--format, -f`: Format PowerShell files instead of analyzing
-- `--severity, -s {Information,Warning,Error,All}`: Set minimum severity level (hierarchical)
-- `--recursive, -r`: Search for PowerShell files recursively from current directory
-- `--version, -v`: Show version information
-- `--help, -h`: Show help message
-
-Rule category filters:
-- `--security-only`: Only show security-related findings
-- `--style-only`: Only show style/formatting-related findings
-- `--performance-only`: Only show performance-related findings
-- `--best-practices-only`: Only show best practices-related findings
-- `--dsc-only`: Only show DSC (Desired State Configuration) related findings
-- `--compatibility-only`: Only show compatibility-related findings
-
-Rule selection:
-- `--include-rules`: Comma-separated list of specific rule names to include
-- `--exclude-rules`: Comma-separated list of specific rule names to exclude
-
-Output format options:
-- `--output-format`: Specify output format (text, json, sarif)
-- `--output-file`: Write output to a file instead of console
+| Option | Description | Example |
+|--------|-------------|---------|
+| `--severity` | Set severity level (Error, Warning, Information) | `--severity Error` |
+| `--recursive` | Find PowerShell files recursively | `--recursive` |
+| `--format` | Format files instead of analyzing | `--format` |
+| `--output-format` | Output format (text, json, sarif) | `--output-format json` |
+| `--output-file` | Write output to file | `--output-file results.json` |
+| `--security-only` | Show only security issues | `--security-only` |
+| `--style-only` | Show only style issues | `--style-only` |
+| `--performance-only` | Show only performance issues | `--performance-only` |
+| `--best-practices-only` | Show only best practice issues | `--best-practices-only` |
+| `--dsc-only` | Show only DSC issues | `--dsc-only` |
+| `--compatibility-only` | Show only compatibility issues | `--compatibility-only` |
+| `--include-rules` | Include only specific rules | `--include-rules Rule1,Rule2` |
+| `--exclude-rules` | Exclude specific rules | `--exclude-rules Rule1,Rule2` |
 
 ### Severity Levels
 
-py-psscriptanalyzer uses a **hierarchical severity system**:
+py-psscriptanalyzer uses hierarchical severity filtering:
 
-- **`Information`**: Shows all issues (Information, Warning, Error) - most comprehensive
-- **`Warning`**: Shows Warning and Error issues (default) - recommended for most use cases
-- **`Error`**: Shows only Error issues - most strict, only critical problems
+- **`Error`**: Only critical errors that must be fixed
+- **`Warning`**: Warnings and errors (default)
+- **`Information`**: All issues including informational messages
 
-The default severity level is **Warning**, but you can customize this using:
+```bash
+# Show only critical errors
+py-psscriptanalyzer --severity Error script.ps1
 
-1. **Command line argument**: `--severity Error`
-2. **Environment variable**: `export SEVERITY_LEVEL=Error`
+# Show warnings and errors (default)
+py-psscriptanalyzer --severity Warning script.ps1
 
-Command line arguments always override environment variable settings.
+# Show all issues
+py-psscriptanalyzer --severity Information script.ps1
+```
 
 ### Environment Variables
 
-Set the `SEVERITY_LEVEL` environment variable to change the default severity:
+Set the `SEVERITY_LEVEL` environment variable to change the default:
 
 ```bash
-# Set default to Error level
+# Set default severity
 export SEVERITY_LEVEL=Error
-py-psscriptanalyzer script.ps1
+py-psscriptanalyzer script.ps1  # Uses Error level
 
-# Override environment variable with command line
+# Command line always overrides environment variables
 export SEVERITY_LEVEL=Error
-py-psscriptanalyzer --severity Warning script.ps1  # Uses Warning, not Error
+py-psscriptanalyzer --severity Warning script.ps1  # Uses Warning level
 ```
 
-Valid values: `Information`, `Warning`, `Error`, `All`. `Information` and `All` are effectively the same.
+### Rule Filtering
+
+#### By Category
+
+Filter by PSScriptAnalyzer rule categories:
+
+```bash
+# Security-focused analysis
+py-psscriptanalyzer --security-only script.ps1
+
+# Style and formatting issues
+py-psscriptanalyzer --style-only script.ps1
+
+# Performance-related issues
+py-psscriptanalyzer --performance-only script.ps1
+
+# Best practice violations
+py-psscriptanalyzer --best-practices-only script.ps1
+
+# DSC-specific issues
+py-psscriptanalyzer --dsc-only script.ps1
+
+# Compatibility issues
+py-psscriptanalyzer --compatibility-only script.ps1
+```
+
+#### By Specific Rules
+
+Include or exclude specific PSScriptAnalyzer rules:
+
+```bash
+# Include only specific rules
+py-psscriptanalyzer --include-rules PSAvoidUsingPlainTextForPassword,PSAvoidUsingConvertToSecureStringWithPlainText script.ps1
+
+# Exclude specific rules
+py-psscriptanalyzer --exclude-rules PSAvoidUsingWriteHost,PSAvoidUsingPositionalParameters script.ps1
+
+# Combine with other filters
+py-psscriptanalyzer --severity Error --security-only --exclude-rules PSAvoidDefaultValueSwitchParameter script.ps1
+```
+
+### Output Formats
+
+#### Text Output (Default)
+
+Standard console output with color coding:
+
+```bash
+py-psscriptanalyzer script.ps1
+```
+
+#### JSON Output
+
+Machine-readable JSON format:
+
+```bash
+# Output to console
+py-psscriptanalyzer --output-format json script.ps1
+
+# Save to file
+py-psscriptanalyzer --output-format json --output-file results.json script.ps1
+```
+
+#### SARIF Output
+
+Static Analysis Results Interchange Format for GitHub Code Scanning:
+
+```bash
+# Generate SARIF file for GitHub integration
+py-psscriptanalyzer --output-format sarif --output-file powershell-analysis.sarif --recursive
+```
+
+### Formatting
+
+Format PowerShell files using Invoke-Formatter:
+
+```bash
+# Format a single file
+py-psscriptanalyzer --format script.ps1
+
+# Format multiple files
+py-psscriptanalyzer --format script1.ps1 script2.ps1
+
+# Format all PowerShell files recursively
+py-psscriptanalyzer --format --recursive
+```
+
+### Recursive Processing
+
+Process all PowerShell files in the current directory and subdirectories:
+
+```bash
+# Analyze all PowerShell files
+py-psscriptanalyzer --recursive
+
+# Format all PowerShell files
+py-psscriptanalyzer --format --recursive
+
+# Combine with other options
+py-psscriptanalyzer --recursive --severity Error --security-only
+```
+
+### Exit Codes
+
+py-psscriptanalyzer returns standard exit codes:
+
+- `0`: Success (no issues found or formatting completed)
+- `1`: Issues found or errors occurred
+- `2`: Invalid arguments or configuration
 
 ### Examples
 
 #### Basic Analysis
 
 ```bash
-# Analyze with default settings (Warning and Error issues)
+# Quick check with default settings
 py-psscriptanalyzer MyScript.ps1
 
-# Show all issues including informational
-py-psscriptanalyzer --severity Information MyScript.ps1
+# Comprehensive analysis
+py-psscriptanalyzer --recursive --severity Information
 
-# Show only critical errors
-py-psscriptanalyzer --severity Error MyScript.ps1
-
-# Search recursively for PowerShell files
-py-psscriptanalyzer --recursive
-
-# Use environment variable for default severity
-export SEVERITY_LEVEL=Error
-py-psscriptanalyzer MyScript.ps1  # Uses Error level
-
-# Override environment variable
-export SEVERITY_LEVEL=Error
-py-psscriptanalyzer --severity Information MyScript.ps1  # Uses Information level
+# Security audit
+py-psscriptanalyzer --recursive --security-only --severity Error
 ```
 
-#### Rule Category Filtering
-
-Filter analysis results by rule category:
+#### Output to Files
 
 ```bash
-# Show only security-related issues
-py-psscriptanalyzer --security-only MyScript.ps1
+# JSON report for CI/CD
+py-psscriptanalyzer --recursive --output-format json --output-file analysis.json
 
-# Show only style/formatting issues
-py-psscriptanalyzer --style-only MyScript.ps1
-
-# Show only performance issues
-py-psscriptanalyzer --performance-only MyScript.ps1
-
-# Show only best practices issues
-py-psscriptanalyzer --best-practices-only MyScript.ps1
-
-# Show only DSC issues
-py-psscriptanalyzer --dsc-only MyScript.ps1
-
-# Show only compatibility issues
-py-psscriptanalyzer --compatibility-only MyScript.ps1
+# SARIF for GitHub Code Scanning
+py-psscriptanalyzer --security-only --recursive --output-format sarif --output-file security.sarif
 ```
 
-#### Include/Exclude Specific Rules
-
-Filter by specific rule names:
+#### Custom Rule Sets
 
 ```bash
-# Only include specific rules
-py-psscriptanalyzer --include-rules PSAvoidUsingPlainTextForPassword,PSAvoidUsingConvertToSecureStringWithPlainText MyScript.ps1
+# Focus on critical security rules only
+py-psscriptanalyzer --include-rules PSAvoidUsingPlainTextForPassword,PSAvoidUsingConvertToSecureStringWithPlainText --severity Error script.ps1
 
-# Exclude specific rules
-py-psscriptanalyzer --exclude-rules PSAvoidUsingWriteHost,PSAvoidUsingPositionalParameters MyScript.ps1
-
-# Combine with severity and other filters
-py-psscriptanalyzer --severity Error --include-rules PSAvoidUsingPlainTextForPassword MyScript.ps1
-```
-
-#### Output Formats
-
-Specify the output format and optionally write to a file:
-
-```bash
-# Output in JSON format
-py-psscriptanalyzer --output-format json script.ps1
-
-# Output in SARIF format for GitHub Code Scanning
-py-psscriptanalyzer --output-format sarif script.ps1
-
-# Write output to a file
-py-psscriptanalyzer --output-format json --output-file results.json script.ps1
-
-# Combine with filters
-py-psscriptanalyzer --security-only --output-format sarif --output-file security-issues.sarif script.ps1
-```
-
-#### Recursive File Search
-
-```bash
-# Analyze all PowerShell files in current directory and subdirectories
-py-psscriptanalyzer --recursive
-
-# Combine with severity filtering
-py-psscriptanalyzer --recursive --severity Error
-
-# Combine with formatting (format all found files)
-py-psscriptanalyzer --recursive --format
-```
-
-The recursive search will find all files with extensions: `.ps1`, `.psm1`, `.psd1`
-
-#### Code Formatting
-
-```bash
-# Format a single file
-py-psscriptanalyzer --format MyScript.ps1
-
-# Format multiple files
-py-psscriptanalyzer --format *.ps1
+# Exclude noisy style rules
+py-psscriptanalyzer --exclude-rules PSAvoidUsingWriteHost,PSAvoidSemicolonsAsLineTerminators script.ps1
 ```
 
 ## Pre-commit Hook Usage
 
-### Available Hooks
+For pre-commit hook configuration, see the [Configuration](configuration.md) documentation.
 
-The package provides two main hooks:
+## Integration with IDEs
 
-1. **`py-psscriptanalyzer`** - Static analysis and linting
-2. **`py-psscriptanalyzer-format`** - Code formatting
+### VS Code
 
-### Automatic Execution
+py-psscriptanalyzer can be integrated with VS Code through tasks or extensions that support external linters.
 
-When you commit PowerShell files (`.ps1`, `.psm1`, `.psd1`), the hooks will automatically:
+### Other Editors
 
-1. **Analysis Hook**: Check for code quality issues, style violations, and potential bugs
-2. **Format Hook**: Apply consistent formatting to your PowerShell code
-
-```bash
-git add MyScript.ps1
-git commit -m "Add new PowerShell script"
-# Hooks run automatically
-```
-
-### Manual Execution
-
-You can also run the hooks manually:
-
-#### Run All Hooks
-
-```bash
-# Run on all PowerShell files
-pre-commit run --all-files
-
-# Run on specific files
-pre-commit run --files MyScript.ps1 MyModule.psm1
-```
-
-#### Run Specific Hooks
-
-```bash
-# Run only the analyzer
-pre-commit run py-psscriptanalyzer --all-files
-
-# Run only the formatter
-pre-commit run py-psscriptanalyzer-format --all-files
-```
-
-### Hook Configuration
-
-You can customize the hooks in your `.pre-commit-config.yaml`:
-
-```yaml
-  repos:
-    - repo: https://github.com/thetestlabs/py-psscriptanalyzer
-      rev: v0.3.1
-      hooks:
-      # Analyzer with custom severity
-      - id: py-psscriptanalyzer
-        args: ["--severity", "Warning"]
-
-      # Formatter (no additional args needed)
-      - id: py-psscriptanalyzer-format
-```
-
-## File Types
-
-py-psscriptanalyzer automatically processes the following PowerShell file types:
-
-- **`.ps1`** - PowerShell scripts
-- **`.psm1`** - PowerShell modules  
-- **`.psd1`** - PowerShell data/manifest files
-
-## Output Examples
-
-### Analysis Output
-
-```bash
-$ py-psscriptanalyzer bad-script.ps1
-
-PSScriptAnalyzer found 2 issue(s):
-
-ERROR: [PSAvoidUsingCmdletAliases] Line 5: 'ls' is an alias of 'Get-ChildItem'. Alias can introduce possible problems and make scripts hard to maintain. Please consider changing alias to its full content.
-
-WARNING: [PSAvoidUsingWriteHost] Line 8: Avoid using Write-Host because it might not work in all hosts, does not work when there is no host, and (prior to PS 5.0) cannot be suppressed, captured, or redirected. Instead, use Write-Output, Write-Verbose, or Write-Information.
-```
-
-### Format Output
-
-```bash
-$ py-psscriptanalyzer --format script.ps1
-
-Formatted 1 file(s):
-  ✓ script.ps1
-```
-
-### Success Output
-
-```bash
-$ py-psscriptanalyzer good-script.ps1
-
-✓ No issues found in PowerShell files.
-```
-
-## Integration Examples
-
-### GitHub Actions
-
-#### Basic Analysis
-
-```yaml
-name: PowerShell Quality
-
-on: [push, pull_request]
-
-jobs:
-  lint:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-
-      - name: Install PowerShell
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y wget apt-transport-https software-properties-common
-          wget -q "https://packages.microsoft.com/config/ubuntu/$(lsb_release -rs)/packages-microsoft-prod.deb"
-          sudo dpkg -i packages-microsoft-prod.deb
-          sudo apt-get update
-          sudo apt-get install -y powershell
-
-      - name: Install py-psscriptanalyzer
-        run: |
-          python -m pip install --upgrade pip
-          pip install py-psscriptanalyzer
-
-      - name: Analyze PowerShell files
-        run: py-psscriptanalyzer --recursive
-```
-
-#### With SARIF for GitHub Code Scanning
-
-```yaml
-name: PowerShell Security Scan
-
-on:
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
-  schedule:
-    - cron: '0 0 * * 0'  # Weekly scan on Sundays
-
-jobs:
-  security-scan:
-    runs-on: ubuntu-latest
-    permissions:
-      # Required for GitHub SARIF upload
-      security-events: write
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-
-      - name: Install PowerShell
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y wget apt-transport-https software-properties-common
-          wget -q "https://packages.microsoft.com/config/ubuntu/$(lsb_release -rs)/packages-microsoft-prod.deb"
-          sudo dpkg -i packages-microsoft-prod.deb
-          sudo apt-get update
-          sudo apt-get install -y powershell
-
-      - name: Install py-psscriptanalyzer
-        run: |
-          python -m pip install --upgrade pip
-          pip install py-psscriptanalyzer
-
-      - name: Run security scan
-        run: |
-          py-psscriptanalyzer --security-only --recursive --output-format sarif --output-file powershell-security.sarif
-
-      - name: Upload SARIF results
-        uses: github/codeql-action/upload-sarif@v2
-        with:
-          sarif_file: powershell-security.sarif
-          category: powershell-security
-```
-
-### Azure Pipelines
-
-```yaml
-trigger:
-- main
-
-pool:
-  vmImage: 'ubuntu-latest'
-
-steps:
-- task: UsePythonVersion@0
-  inputs:
-    versionSpec: '3.11'
-
-- script: |
-    sudo apt-get update
-    sudo apt-get install -y wget apt-transport-https software-properties-common
-    wget -q "https://packages.microsoft.com/config/ubuntu/$(lsb_release -rs)/packages-microsoft-prod.deb"
-    sudo dpkg -i packages-microsoft-prod.deb
-    sudo apt-get update
-    sudo apt-get install -y powershell
-  displayName: 'Install PowerShell'
-
-- script: |
-    python -m pip install --upgrade pip
-    pip install py-psscriptanalyzer
-  displayName: 'Install py-psscriptanalyzer'
-
-- script: |
-    py-psscriptanalyzer **/*.ps1
-  displayName: 'Analyze PowerShell files'
-```
-
-## Best Practices
-
-### Development Workflow
-
-1. **Install pre-commit hooks** in your development repository
-2. **Run formatting first** to fix style issues automatically
-3. **Address analysis issues** to improve code quality
-4. **Commit clean code** that passes all checks
-
-### Continuous Integration
-
-1. **Install PowerShell** in your CI environment
-2. **Run analysis** as part of your build process
-3. **Fail builds** on serious issues (errors/warnings)
-4. **Generate reports** for code quality tracking
-
-### Team Usage
-
-1. **Standardize configuration** across team repositories
-2. **Document custom rules** and severity levels
-3. **Train team members** on PowerShell best practices
-4. **Review analysis results** during code reviews
-
-## Quick Reference
-
-### Command Line Options
-
-| Option | Short | Description |
-|--------|-------|-------------|
-| `--format` | `-f` | Format files instead of analyzing |
-| `--severity` | `-s` | Set severity level (Information/Warning/Error) |
-| `--recursive` | `-r` | Search files recursively |
-| `--version` | `-v` | Show version information |
-| `--help` | `-h` | Show help message |
-
-### Rule Category Filters
-
-| Option | Description |
-|--------|-------------|
-| `--security-only` | Only show security-related findings |
-| `--style-only` | Only show style/formatting-related findings |
-| `--performance-only` | Only show performance-related findings |
-| `--best-practices-only` | Only show best practices-related findings |
-| `--dsc-only` | Only show DSC-related findings |
-| `--compatibility-only` | Only show compatibility-related findings |
-
-### Rule Selection Options
-
-| Option | Description |
-|--------|-------------|
-| `--include-rules` | Comma-separated list of specific rule names to include |
-| `--exclude-rules` | Comma-separated list of specific rule names to exclude |
-
-### Output Format Options
-
-| Option | Description |
-|--------|-------------|
-| `--output-format` | Specify output format: text (default), json, or sarif |
-| `--output-file` | Write output to a file instead of console |
-
-### Severity Levels
-
-| Level | Shows | Use Case |
-|-------|-------|----------|
-| `Information` | All issues | Development, comprehensive analysis |
-| `Warning` | Warning + Error | Default, recommended for most projects |
-| `Error` | Error only | CI/CD, strict quality gates |
-
-### Environment Variables
-
-| Variable | Values | Default |
-|----------|--------|---------|
-| `SEVERITY_LEVEL` | Information, Warning, Error, All | Warning |
-
-### Common Commands
-
-```bash
-# Basic analysis
-py-psscriptanalyzer script.ps1
-
-# Recursive analysis with Error level
-py-psscriptanalyzer --recursive --severity Error
-
-# Format all files in project
-py-psscriptanalyzer --recursive --format
-
-# Use environment variable
-export SEVERITY_LEVEL=Information && py-psscriptanalyzer --recursive
-
-# Filter security issues and generate SARIF output
-py-psscriptanalyzer --security-only --output-format sarif --output-file security-scan.sarif
-
-# Include only specific rules
-py-psscriptanalyzer --include-rules PSAvoidUsingPlainTextForPassword,PSAvoidUsingConvertToSecureStringWithPlainText
-
-# Exclude specific rules
-py-psscriptanalyzer --exclude-rules PSAvoidUsingWriteHost
-```
+Any editor that supports external command execution can integrate py-psscriptanalyzer for PowerShell analysis.
