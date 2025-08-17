@@ -2,7 +2,7 @@
 
 ## Command Line Usage
 
-py-psscriptanalyzer can be used both as a standalone command-line tool and as a pre-commit hook.
+py-psscriptanalyzer can be used as a standalone command-line tool, as a pre-commit hook, or integrated into your CI/CD workflows.
 
 ### Basic Command Line
 
@@ -81,7 +81,7 @@ export SEVERITY_LEVEL=Error
 py-psscriptanalyzer --severity Warning script.ps1  # Uses Warning, not Error
 ```
 
-Valid values: `Information`, `Warning`, `Error`, `All`
+Valid values: `Information`, `Warning`, `Error`, `All`. `Information` and `All` are effectively the same.
 
 ### Examples
 
@@ -317,10 +317,17 @@ jobs:
 
       - name: Install PowerShell
         run: |
-          sudo snap install powershell --classic
+          sudo apt-get update
+          sudo apt-get install -y wget apt-transport-https software-properties-common
+          wget -q "https://packages.microsoft.com/config/ubuntu/$(lsb_release -rs)/packages-microsoft-prod.deb"
+          sudo dpkg -i packages-microsoft-prod.deb
+          sudo apt-get update
+          sudo apt-get install -y powershell
 
       - name: Install py-psscriptanalyzer
-        run: pip install py-psscriptanalyzer
+        run: |
+          python -m pip install --upgrade pip
+          pip install py-psscriptanalyzer
 
       - name: Analyze PowerShell files
         run: py-psscriptanalyzer --recursive
@@ -356,10 +363,17 @@ jobs:
 
       - name: Install PowerShell
         run: |
-          sudo snap install powershell --classic
+          sudo apt-get update
+          sudo apt-get install -y wget apt-transport-https software-properties-common
+          wget -q "https://packages.microsoft.com/config/ubuntu/$(lsb_release -rs)/packages-microsoft-prod.deb"
+          sudo dpkg -i packages-microsoft-prod.deb
+          sudo apt-get update
+          sudo apt-get install -y powershell
 
       - name: Install py-psscriptanalyzer
-        run: pip install py-psscriptanalyzer
+        run: |
+          python -m pip install --upgrade pip
+          pip install py-psscriptanalyzer
 
       - name: Run security scan
         run: |
@@ -387,10 +401,16 @@ steps:
     versionSpec: '3.11'
 
 - script: |
-    sudo snap install powershell --classic
+    sudo apt-get update
+    sudo apt-get install -y wget apt-transport-https software-properties-common
+    wget -q "https://packages.microsoft.com/config/ubuntu/$(lsb_release -rs)/packages-microsoft-prod.deb"
+    sudo dpkg -i packages-microsoft-prod.deb
+    sudo apt-get update
+    sudo apt-get install -y powershell
   displayName: 'Install PowerShell'
 
 - script: |
+    python -m pip install --upgrade pip
     pip install py-psscriptanalyzer
   displayName: 'Install py-psscriptanalyzer'
 
@@ -497,10 +517,3 @@ py-psscriptanalyzer --include-rules PSAvoidUsingPlainTextForPassword,PSAvoidUsin
 # Exclude specific rules
 py-psscriptanalyzer --exclude-rules PSAvoidUsingWriteHost
 ```
-
-### Team Best Practices
-
-1. **Standardize configuration** across team repositories
-2. **Document custom rules** and severity levels
-3. **Train team members** on PowerShell best practices
-4. **Review analysis results** during code reviews
